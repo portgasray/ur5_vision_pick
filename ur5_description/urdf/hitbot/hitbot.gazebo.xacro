@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<!--
+Copyright (c) 2018 Intel Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hitbot_gazebo">
+
+	<gazebo reference="hitbot_base">
+    <material>Gazebo/Black</material>
+    <mu1>0.9</mu1>
+    <mu2>0.9</mu2>
+  </gazebo>
+	<gazebo reference="hitbot_mask">
+    <mu1>0.9</mu1>
+    <mu2>0.9</mu2>
+  </gazebo>
+	<gazebo reference="hitbot_finger0">
+    <material>Gazebo/Grey</material>
+    <mu1>0.9</mu1>
+    <mu2>0.9</mu2>
+  </gazebo>
+	<gazebo reference="hitbot_finger1">
+    <material>Gazebo/Grey</material>
+    <mu1>0.9</mu1>
+    <mu2>0.9</mu2>
+  </gazebo>
+
+	<transmission name="hitbot_finger_joint1_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="hitbot_base_finger0_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="hitbot_finger_joint1_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </actuator>
+  </transmission>
+
+  <transmission name="hitbot_finger_joint2_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="hitbot_base_finger1_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="hitbot_finger_joint2_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </actuator>
+  </transmission>
+
+  <!-- Gazebo grasping plugin -->
+  <gazebo>
+    <gripper name="gazebo_gripper">
+      <grasp_check>
+        <attach_steps>2</attach_steps>    <!-- default: 20 -->
+        <detach_steps>2</detach_steps>    <!-- default: 40 -->
+        <min_contact_count>2</min_contact_count>
+      </grasp_check>
+      <gripper_link>hitbot_finger0</gripper_link>
+      <gripper_link>hitbot_finger1</gripper_link>
+      <palm_link>hitbot_base</palm_link>
+    </gripper>
+  </gazebo>
+
+</robot>
