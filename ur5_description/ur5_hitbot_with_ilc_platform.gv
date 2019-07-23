@@ -1,0 +1,131 @@
+digraph G {
+node [shape=box];
+"world" [label="world"];
+"platform_base" [label="platform_base"];
+"beam_back_bottom" [label="beam_back_bottom"];
+"beam_back_top" [label="beam_back_top"];
+"beam_camera_horizontal" [label="beam_camera_horizontal"];
+"beam_camera_tilt" [label="beam_camera_tilt"];
+"beam_camera_vertical" [label="beam_camera_vertical"];
+"beam_connect_left_bottom" [label="beam_connect_left_bottom"];
+"beam_connect_left_top" [label="beam_connect_left_top"];
+"beam_connect_right_bottom" [label="beam_connect_right_bottom"];
+"beam_connect_right_top" [label="beam_connect_right_top"];
+"beam_front_bottom" [label="beam_front_bottom"];
+"beam_front_top" [label="beam_front_top"];
+"beam_left_bottom" [label="beam_left_bottom"];
+"beam_left_top" [label="beam_left_top"];
+"beam_middle_bottom" [label="beam_middle_bottom"];
+"beam_middle_top" [label="beam_middle_top"];
+"beam_right_bottom" [label="beam_right_bottom"];
+"beam_right_top" [label="beam_right_top"];
+"beam_support_back_left" [label="beam_support_back_left"];
+"beam_support_back_right" [label="beam_support_back_right"];
+"beam_support_front_left" [label="beam_support_front_left"];
+"beam_support_front_right" [label="beam_support_front_right"];
+"beam_support_robot_bottom" [label="beam_support_robot_bottom"];
+"beam_support_robot_top" [label="beam_support_robot_top"];
+"robot_install_plate" [label="robot_install_plate"];
+"base_link" [label="base_link"];
+"base" [label="base"];
+"shoulder_link" [label="shoulder_link"];
+"upper_arm_link" [label="upper_arm_link"];
+"forearm_link" [label="forearm_link"];
+"wrist_1_link" [label="wrist_1_link"];
+"wrist_2_link" [label="wrist_2_link"];
+"wrist_3_link" [label="wrist_3_link"];
+"ee_link" [label="ee_link"];
+"tool0" [label="tool0"];
+"hitbot_base" [label="hitbot_base"];
+"hitbot_finger0" [label="hitbot_finger0"];
+"hitbot_finger0_tip" [label="hitbot_finger0_tip"];
+"hitbot_finger1" [label="hitbot_finger1"];
+"hitbot_finger1_tip" [label="hitbot_finger1_tip"];
+"hitbot_mask" [label="hitbot_mask"];
+"operation_surface" [label="operation_surface"];
+node [shape=ellipse, color=blue, fontcolor=blue];
+"world" -> "world_platform_joint" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"world_platform_joint" -> "platform_base"
+"platform_base" -> "platform_base_beam_back_bottom_joint" [label="xyz: 0 0.53 0.095 \nrpy: 0 -0 0"]
+"platform_base_beam_back_bottom_joint" -> "beam_back_bottom"
+"platform_base" -> "platform_base_beam_back_top_joint" [label="xyz: 0 0.53 0.455 \nrpy: 0 -0 0"]
+"platform_base_beam_back_top_joint" -> "beam_back_top"
+"platform_base" -> "platform_base_beam_camera_horizontal_joint" [label="xyz: -0.31 0.13 1.455 \nrpy: 0 -0 0"]
+"platform_base_beam_camera_horizontal_joint" -> "beam_camera_horizontal"
+"platform_base" -> "platform_base_beam_camera_tilt_joint" [label="xyz: -0.31 0.285 1.305 \nrpy: -0.523599 0 0"]
+"platform_base_beam_camera_tilt_joint" -> "beam_camera_tilt"
+"platform_base" -> "platform_base_beam_camera_vertical_joint" [label="xyz: -0.31 0.55 0.975 \nrpy: 1.5708 -0 0"]
+"platform_base_beam_camera_vertical_joint" -> "beam_camera_vertical"
+"platform_base" -> "platform_base_beam_connect_left_bottom_joint" [label="xyz: 0.155 0 0.095 \nrpy: 0 -0 0"]
+"platform_base_beam_connect_left_bottom_joint" -> "beam_connect_left_bottom"
+"platform_base" -> "platform_base_beam_connect_left_top_joint" [label="xyz: 0.155 0 0.455 \nrpy: 0 -0 0"]
+"platform_base_beam_connect_left_top_joint" -> "beam_connect_left_top"
+"platform_base" -> "platform_base_beam_connect_right_bottom_joint" [label="xyz: -0.155 0 0.095 \nrpy: 0 -0 0"]
+"platform_base_beam_connect_right_bottom_joint" -> "beam_connect_right_bottom"
+"platform_base" -> "platform_base_beam_connect_right_top_joint" [label="xyz: -0.155 0 0.455 \nrpy: 0 -0 0"]
+"platform_base_beam_connect_right_top_joint" -> "beam_connect_right_top"
+"platform_base" -> "platform_base_beam_front_bottom_joint" [label="xyz: 0 -0.53 0.095 \nrpy: 0 -0 0"]
+"platform_base_beam_front_bottom_joint" -> "beam_front_bottom"
+"platform_base" -> "platform_base_beam_front_top_joint" [label="xyz: 0 -0.53 0.455 \nrpy: 0 -0 0"]
+"platform_base_beam_front_top_joint" -> "beam_front_top"
+"platform_base" -> "platform_base_beam_left_bottom_joint" [label="xyz: 0.31 0 0.095 \nrpy: 0 -0 0"]
+"platform_base_beam_left_bottom_joint" -> "beam_left_bottom"
+"platform_base" -> "platform_base_beam_left_top_joint" [label="xyz: 0.31 0 0.455 \nrpy: 0 -0 0"]
+"platform_base_beam_left_top_joint" -> "beam_left_top"
+"platform_base" -> "platform_base_beam_middle_bottom_joint" [label="xyz: 0 0 0.095 \nrpy: 0 -0 0"]
+"platform_base_beam_middle_bottom_joint" -> "beam_middle_bottom"
+"platform_base" -> "platform_base_beam_middle_top_joint" [label="xyz: 0 0 0.455 \nrpy: 0 -0 0"]
+"platform_base_beam_middle_top_joint" -> "beam_middle_top"
+"platform_base" -> "platform_base_beam_right_bottom_joint" [label="xyz: -0.31 0 0.095 \nrpy: 0 -0 0"]
+"platform_base_beam_right_bottom_joint" -> "beam_right_bottom"
+"platform_base" -> "platform_base_beam_right_top_joint" [label="xyz: -0.31 0 0.455 \nrpy: 0 -0 0"]
+"platform_base_beam_right_top_joint" -> "beam_right_top"
+"platform_base" -> "platform_base_beam_support_back_left_joint" [label="xyz: 0.31 0.53 0.275 \nrpy: 0 -0 0"]
+"platform_base_beam_support_back_left_joint" -> "beam_support_back_left"
+"platform_base" -> "platform_base_beam_support_back_right_joint" [label="xyz: -0.31 0.53 0.275 \nrpy: 0 -0 0"]
+"platform_base_beam_support_back_right_joint" -> "beam_support_back_right"
+"platform_base" -> "platform_base_beam_support_front_left_joint" [label="xyz: 0.31 -0.53 0.275 \nrpy: 0 -0 0"]
+"platform_base_beam_support_front_left_joint" -> "beam_support_front_left"
+"platform_base" -> "platform_base_beam_support_front_right_joint" [label="xyz: -0.31 -0.53 0.275 \nrpy: 0 -0 0"]
+"platform_base_beam_support_front_right_joint" -> "beam_support_front_right"
+"platform_base" -> "platform_base_beam_support_robot_bottom_joint" [label="xyz: 0 0.225 0.275 \nrpy: 0 -0 0"]
+"platform_base_beam_support_robot_bottom_joint" -> "beam_support_robot_bottom"
+"platform_base" -> "platform_base_beam_support_robot_top_joint" [label="xyz: 0 0.225 0.55 \nrpy: 0 -0 0"]
+"platform_base_beam_support_robot_top_joint" -> "beam_support_robot_top"
+"beam_support_robot_top" -> "platform_base_robot_install_plate_joint" [label="xyz: 0 0 0.0825 \nrpy: 0 -0 0"]
+"platform_base_robot_install_plate_joint" -> "robot_install_plate"
+"robot_install_plate" -> "platform_base_link_joint" [label="xyz: 0 0 0.0075 \nrpy: 0 -0 -3.14159"]
+"platform_base_link_joint" -> "base_link"
+"base_link" -> "base_link-base_fixed_joint" [label="xyz: 0 0 0 \nrpy: 0 0 3.14159"]
+"base_link-base_fixed_joint" -> "base"
+"base_link" -> "shoulder_pan_joint" [label="xyz: 0 0 0.089159 \nrpy: 0 -0 0"]
+"shoulder_pan_joint" -> "shoulder_link"
+"shoulder_link" -> "shoulder_lift_joint" [label="xyz: 0 0.13585 0 \nrpy: 0 1.5708 -0"]
+"shoulder_lift_joint" -> "upper_arm_link"
+"upper_arm_link" -> "elbow_joint" [label="xyz: 0 -0.1197 0.425 \nrpy: 0 -0 0"]
+"elbow_joint" -> "forearm_link"
+"forearm_link" -> "wrist_1_joint" [label="xyz: 0 0 0.39225 \nrpy: 0 1.5708 -0"]
+"wrist_1_joint" -> "wrist_1_link"
+"wrist_1_link" -> "wrist_2_joint" [label="xyz: 0 0.093 0 \nrpy: 0 -0 0"]
+"wrist_2_joint" -> "wrist_2_link"
+"wrist_2_link" -> "wrist_3_joint" [label="xyz: 0 0 0.09465 \nrpy: 0 -0 0"]
+"wrist_3_joint" -> "wrist_3_link"
+"wrist_3_link" -> "ee_fixed_joint" [label="xyz: 0 0.0823 0 \nrpy: 0 -0 1.5708"]
+"ee_fixed_joint" -> "ee_link"
+"wrist_3_link" -> "wrist_3_link-tool0_fixed_joint" [label="xyz: 0 0.0823 0 \nrpy: -1.5708 0 0"]
+"wrist_3_link-tool0_fixed_joint" -> "tool0"
+"tool0" -> "tool0_hitbot_joint" [label="xyz: 0 0 0 \nrpy: 0 -0 0.785398"]
+"tool0_hitbot_joint" -> "hitbot_base"
+"hitbot_base" -> "hitbot_base_finger0_joint" [label="xyz: 0 -0.01 0.114 \nrpy: 0 -0 0"]
+"hitbot_base_finger0_joint" -> "hitbot_finger0"
+"hitbot_finger0" -> "hitbot_finger0_tip_joint" [label="xyz: 0 0 0.01 \nrpy: -1.5708 -1.26218e-29 -3.14159"]
+"hitbot_finger0_tip_joint" -> "hitbot_finger0_tip"
+"hitbot_base" -> "hitbot_base_finger1_joint" [label="xyz: 0 0.004 0.114 \nrpy: 0 -0 0"]
+"hitbot_base_finger1_joint" -> "hitbot_finger1"
+"hitbot_finger1" -> "hitbot_finger1_tip_joint" [label="xyz: 0 0.0055 0.01 \nrpy: -1.5708 0 0"]
+"hitbot_finger1_tip_joint" -> "hitbot_finger1_tip"
+"hitbot_base" -> "hitbot_base_mask_joint" [label="xyz: 0 0 0.006 \nrpy: 0 -0 0"]
+"hitbot_base_mask_joint" -> "hitbot_mask"
+"platform_base" -> "platform_base_operation_surface_joint" [label="xyz: 0 -0.27 0.5 \nrpy: 0 -0 0"]
+"platform_base_operation_surface_joint" -> "operation_surface"
+}

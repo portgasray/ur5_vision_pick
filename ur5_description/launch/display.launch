@@ -1,0 +1,12 @@
+<launch>
+<arg name="gui" default="True" />
+  
+    <param name="robot_description" 
+            command="$(find xacro)/xacro --inorder '$(find ur5_description)/urdf/ur5_hitbot_with_ilc_platform.xacro.urdf'"/>
+
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ur5_description)/config/ur5_view.rviz" required="true" />
+</launch>
