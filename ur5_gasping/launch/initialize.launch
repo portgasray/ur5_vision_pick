@@ -1,0 +1,22 @@
+<launch>
+  <arg name="limited" default="true"/>
+  <arg name="paused" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="debug" default="false" />
+  <arg name="sim" default="false" />
+
+  <!-- Remap follow_joint_trajectory -->
+  <!-- Remap gripper_cmd -->
+
+  <!-- Launch moveit -->
+  <include file="$(find ur5_moveit_config)/launch/move_group.launch">
+    <arg name="limited" default="$(arg limited)"/>
+    <arg name="debug" default="$(arg debug)" />
+  </include>
+
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch" />
+  
+  <node name="Object_Detect_network" pkg="probot_detect" type="Detector_pick.py" output="screen">
+  </node>
+
+</launch>
