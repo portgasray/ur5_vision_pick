@@ -28,6 +28,8 @@ Panels:
     Name: Time
     SyncMode: 0
     SyncSource: ""
+Toolbars:
+  toolButtonStyle: 2
 Visualization Manager:
   Class: ""
   Displays:
@@ -61,12 +63,6 @@ Visualization Manager:
         beam_back_bottom:
           Value: true
         beam_back_top:
-          Value: true
-        beam_camera_horizontal:
-          Value: true
-        beam_camera_tilt:
-          Value: true
-        beam_camera_vertical:
           Value: true
         beam_connect_left_bottom:
           Value: true
@@ -108,18 +104,6 @@ Visualization Manager:
           Value: true
         forearm_link:
           Value: true
-        hitbot_base:
-          Value: true
-        hitbot_finger0:
-          Value: true
-        hitbot_finger0_tip:
-          Value: true
-        hitbot_finger1:
-          Value: true
-        hitbot_finger1_tip:
-          Value: true
-        hitbot_mask:
-          Value: true
         operation_surface:
           Value: true
         platform_base:
@@ -127,8 +111,6 @@ Visualization Manager:
         robot_install_plate:
           Value: true
         shoulder_link:
-          Value: true
-        tool0:
           Value: true
         upper_arm_link:
           Value: true
@@ -151,12 +133,6 @@ Visualization Manager:
             beam_back_bottom:
               {}
             beam_back_top:
-              {}
-            beam_camera_horizontal:
-              {}
-            beam_camera_tilt:
-              {}
-            beam_camera_vertical:
               {}
             beam_connect_left_bottom:
               {}
@@ -205,16 +181,6 @@ Visualization Manager:
                             wrist_3_link:
                               ee_link:
                                 {}
-                              tool0:
-                                hitbot_base:
-                                  hitbot_finger0:
-                                    hitbot_finger0_tip:
-                                      {}
-                                  hitbot_finger1:
-                                    hitbot_finger1_tip:
-                                      {}
-                                  hitbot_mask:
-                                    {}
             operation_surface:
               {}
       Update Interval: 0
@@ -244,21 +210,6 @@ Visualization Manager:
           Show Trail: false
           Value: true
         beam_back_top:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        beam_camera_horizontal:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        beam_camera_tilt:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        beam_camera_vertical:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -363,36 +314,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        hitbot_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hitbot_finger0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hitbot_finger0_tip:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hitbot_finger1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hitbot_finger1_tip:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        hitbot_mask:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         operation_surface:
           Alpha: 1
           Show Axes: false
@@ -412,10 +333,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        tool0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         upper_arm_link:
           Alpha: 1
           Show Axes: false
@@ -471,7 +388,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.4102788
+      Distance: 0.590713203
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -486,10 +403,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.414797276
+      Pitch: 0.534797311
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.52358055
+      Yaw: 5.30856323
     Saved: ~
 Window Geometry:
   Displays:
