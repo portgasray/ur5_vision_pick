@@ -9,14 +9,21 @@
   <!-- Remap gripper_cmd -->
 
   <!-- Launch moveit -->
-  <include file="$(find ur5_moveit_config)/launch/move_group.launch">
+  <include file="$(find ur5_vision_pick_moveit_config)/launch/move_group.launch">
     <arg name="limited" default="$(arg limited)"/>
     <arg name="debug" default="$(arg debug)" />
   </include>
 
+  <!-- start realsense camera -->
   <include file="$(find realsense2_camera)/launch/rs_camera.launch" />
   
-  <node name="Object_Detect_network" pkg="probot_detect" type="Detector_pick.py" output="screen">
-  </node>
+  <!-- start the robot -->
+  <include file="$(find ur_modern_driver)/launch/ur5_bringup.launch" >
+    <arg name="robot_ip" value="169.254.6.80" />
+  </include>  
+
+    <!-- start the USB -->
+    <!-- <include file="$(find probot_ocr)/launch/usb_cam-test.launch" /> -->
+
 
 </launch>
