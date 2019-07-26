@@ -69,7 +69,7 @@ class ur5_vision:
         _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         child_contour = hierarchy [0, :,2]
         cnts = contours
-        cnts = [ cnts[i] for i in child_contour if (cv2.contourArea(cnts[i]) > 100) and (cv2.contourArea(cnts[i]) < 1000)]
+        cnts = [ cnts[i] for i in child_contour if (cv2.contourArea(cnts[i]) > 100)]
         cX = 0 
         cY = 0
         for c in cnts:
