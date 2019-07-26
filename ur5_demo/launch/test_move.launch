@@ -1,0 +1,3 @@
+<launch>
+  <node name="test_move" pkg="ur5_demo" type="test_move" required="true"/>
+</launch>
