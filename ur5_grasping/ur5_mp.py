@@ -54,10 +54,10 @@ def image_callback(msg):
         cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
         cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
         cv2.drawContours(image, cnts, -1, (255, 255, 255),1)
-    
-    # cv2.namedWindow("window", 1)
-    # cv2.imshow("window", image)
-    # cv2.waitKey(0)
+    cv2.namedWindow("window", 1)
+    cv2.imshow("window", image)
+    cv2.waitKey(0)
+        # print ("============ cx= ", cx, "      cy= ", cy)
     return cx,cy
 
 class MoveGroupTutorial(object):

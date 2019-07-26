@@ -26,7 +26,7 @@ import rospy, sys, numpy as np
 import moveit_commander
 from copy import deepcopy
 import geometry_msgs.msg
-from ur5_notebook.msg import Tracker
+# from ur5_notebook.msg import Tracker
 import moveit_msgs.msg
 import cv2, cv_bridge
 from sensor_msgs.msg import Image
@@ -45,62 +45,48 @@ class ur5_vision:
         self.cy = 400.0
         self.bridge = cv_bridge.CvBridge()
         self.image_sub = rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
-        self.cxy_pub = rospy.Publisher('cxy', Tracker, queue_size=1)
+        self.cxy_pub = rospy.Publisher('camera_xy', Tracker, queue_size=1)
 
 
     def image_callback(self,msg):
         # BEGIN BRIDGE
         image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8')
         # END BRIDGE
-        # BEGIN HSV
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-        # END HSV
-        # BEGIN FILTER
-        lower_red = np.array([ 0,  100, 100])
-        upper_red = np.array([10, 255, 255])
-        mask = cv2.inRange(hsv, lower_red, upper_red)
-        (_, cnts, _) = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        #area = cv2.contourArea(cnts)
-        h, w, d = image.shape
-        # print h, w, d  (800,800,3)
-        #BEGIN FINDER
-        M = cv2.moments(mask)
-        if M['m00'] > 0:
-            cx = int(M['m10']/M['m00'])
-            cy = int(M['m01']/M['m00'])
+        # convert image to grayscale image
+        gray_image =  cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # cx range (55,750) cy range( 55, ~ )
-        # END FINDER
-        # Isolate largest contour
-        #  contour_sizes = [(cv2.contourArea(contour), contour) for contour in cnts]
-        #  biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
-            for i, c in enumerate(cnts):
-                area = cv2.contourArea(c)
-                if area > 7500:
-                    self.track_flag = True
-                    self.cx = cx
-                    self.cy = cy
-                    self.error_x = self.cx - w/2
-                    self.error_y = self.cy - (h/2+195)
-                    tracker.x = cx
-                    tracker.y = cy
-                    tracker.flag1 = self.track_flag
-                    tracker.error_x = self.error_x
-                    tracker.error_y = self.error_y
-                    #(_,_,w_b,h_b)=cv2.boundingRect(c)
-                    #print w_b,h_b
-                    # BEGIN circle
-                    cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
-                    cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                    cv2.drawContours(image, cnts, -1, (255, 255, 255),1)
-                    #BGIN CONTROL
-                    break
-                else:
-                    self.track_flag = False
-                    tracker.flag1 = self.track_flag
+        kernel_size = 13
+        radius = 0
+        blurred_image = cv2.GaussianBlur(gray_image , (kernel_size, kernel_size) , radius)
 
+        #convert the grayscale image to binary image
+        threshold = 150
+        max_value = 225
+        ret_, thresh = cv2.threshold(blurred_image, threshold, max_value, cv2.THRESH_BINARY)
 
+        #Finding contours
+        _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        child_contour = hierarchy [0, :,2]
+        cnts = contours
+        cnts = [ cnts[i] for i in child_contour if (cv2.contourArea(cnts[i]) > 100) and (cv2.contourArea(cnts[i]) < 1000)]
+        for c in cnts:
+            # calculate momnets of binary image
+            M = cv2.moments(c)
+            # calculate x, y coordinate of center
+            if M["m00"] != 0:
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+            x, y, w, h = cv2.boundingRect(c)
+            cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
+            #draw a circle center
+            cv2.circle(image, (cX, cY), 1, (255, 255, 255), -1)
+        self.track_flag = True
+        self.cx = cX
+        self.cy = cY
+
+        tracker.x = cx
+        tracker.y = cy
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image )

@@ -88,7 +88,7 @@ void VisionManager::detectTable(cv::Rect &tablePos)
 	std::cout << "Pixels in x" << pixels_permm_x << std::endl;
 
 	// Draw Contours - For Debugging
-	std::vector<std::vector<cv::Point>> contours;
+	std::vector< std::vector <cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
 
 	cv::findContours(binaryImage, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
@@ -162,7 +162,7 @@ void VisionManager::detect2DObject(float &pixel_x, float &pixel_y, cv::Rect &tab
 	cv::circle(image, pt, 2, cv::Scalar(0, 0, 255), -1, 8);
 
 	// Draw Contours
-	std::vector<std::vector<cv::Point>> contours;
+	std::vector< std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
 
 	cv::findContours(binaryImage, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
