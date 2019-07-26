@@ -26,7 +26,7 @@ import rospy, sys, numpy as np
 import moveit_commander
 from copy import deepcopy
 import geometry_msgs.msg
-# from ur5_notebook.msg import Tracker
+from ur5_grasping.msg import Tracker
 import moveit_msgs.msg
 import cv2, cv_bridge
 from sensor_msgs.msg import Image
@@ -61,8 +61,8 @@ class ur5_vision:
         blurred_image = cv2.GaussianBlur(gray_image , (kernel_size, kernel_size) , radius)
 
         #convert the grayscale image to binary image
-        threshold = 150
-        max_value = 225
+        threshold = 136
+        max_value = 255
         ret_, thresh = cv2.threshold(blurred_image, threshold, max_value, cv2.THRESH_BINARY)
 
         #Finding contours
@@ -70,6 +70,8 @@ class ur5_vision:
         child_contour = hierarchy [0, :,2]
         cnts = contours
         cnts = [ cnts[i] for i in child_contour if (cv2.contourArea(cnts[i]) > 100) and (cv2.contourArea(cnts[i]) < 1000)]
+        cX = 0 
+        cY = 0
         for c in cnts:
             # calculate momnets of binary image
             M = cv2.moments(c)
@@ -81,16 +83,19 @@ class ur5_vision:
             cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
             #draw a circle center
             cv2.circle(image, (cX, cY), 1, (255, 255, 255), -1)
+        
         self.track_flag = True
         self.cx = cX
         self.cy = cY
 
-        tracker.x = cx
-        tracker.y = cy
+        tracker.x = cX
+        tracker.y = cY
+
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image )
         cv2.waitKey(1)
 
-follower=ur5_vision()
-rospy.spin()
+if __name__ == "__main__":
+    follower=ur5_vision()
+    rospy.spin()
