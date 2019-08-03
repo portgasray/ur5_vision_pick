@@ -47,3 +47,7 @@ ERROR: Model Parsing the xml failed
 ```
 roslaunch ur5_description display.launch
 ```
+or
+```
+roslaunch urdf_tutorial display.launch model:=/home/relaybot/ROS_tutorial/src/urdf_tutorial-kinetic/urdf/xxxx.urdf
+```
