@@ -16,11 +16,11 @@ limitations under the License.
 
 #include "ur5_grasping/vision_manager.h"
 
-VisionManager::VisionManager(float length, float breadth)
-{
-	this->table_length = length;
-	this->table_breadth = breadth;
-}
+// VisionManager::VisionManager(float length, float breadth)
+// {
+// 	this->table_length = length;
+// 	this->table_breadth = breadth;
+// }
 
 void VisionManager::get2DLocation(cv::Mat img, float &x, float &y)
 {
@@ -28,9 +28,9 @@ void VisionManager::get2DLocation(cv::Mat img, float &x, float &y)
 	img_centre_x_ = img.rows / 2;
 	img_centre_y_ = img.cols / 2;
 
-	cv::Rect tablePos;
+	// cv::Rect tablePos;
 
-	detectTable(tablePos);
+	// detectTable(tablePos);
 
 	detect2DObject(x, y, tablePos);
 	convertToMM(x, y);

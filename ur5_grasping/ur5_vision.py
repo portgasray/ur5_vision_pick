@@ -1,27 +1,5 @@
 #!/usr/bin/env python
 
-"""
-    moveit_cartesian_path.py - Version 0.1 2016-07-28
-
-    Based on the R. Patrick Goebel's moveit_cartesian_demo.py demo code.
-
-    Plan and execute a Cartesian path for the end-effector.
-
-    Created for the Pi Robot Project: http://www.pirobot.org
-    Copyright (c) 2014 Patrick Goebel.  All rights reserved.
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.5
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details at:
-
-    http://www.gnu.org/licenses/gpl.html
-"""
-
 import rospy, sys, numpy as np
 import moveit_commander
 from copy import deepcopy
@@ -52,7 +30,9 @@ class ur5_vision:
         # BEGIN BRIDGE
         image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8')
         # END BRIDGE
-
+        h, w, d = image.shape
+        img_center_x = w/2
+        img_center_y = h/2
         # convert image to grayscale image
         gray_image =  cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -69,28 +49,59 @@ class ur5_vision:
         _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         child_contour = hierarchy [0, :,2]
         cnts = contours
-        cnts = [ cnts[i] for i in child_contour if (cv2.contourArea(cnts[i]) > 100)]
+        paper_cnt = contours
+
+        cnts = [ cnts[i] for i in child_contour ]
         cX = 0 
         cY = 0
-        for c in cnts:
-            # calculate momnets of binary image
-            M = cv2.moments(c)
-            # calculate x, y coordinate of center
-            if M["m00"] != 0:
-                cX = int(M["m10"] / M["m00"])
-                cY = int(M["m01"] / M["m00"])
-            x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
-            #draw a circle center
-            cv2.circle(image, (cX, cY), 1, (255, 255, 255), -1)
+        for i, c in enumerate(cnts):
+            area = cv2.contourArea(c) 
+            if area > 100:
+                self.track_flag = True
+                # calculate momnets of binary image
+                M = cv2.moments(c)
+                # calculate x, y coordinate of center
+                if M["m00"] != 0:
+                    cX = int(M["m10"] / M["m00"])
+                    cY = int(M["m01"] / M["m00"])
+                x, y, w, h = cv2.boundingRect(c)
+                cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
+                #draw a circle center
+                cv2.circle(image, (cX, cY), 1, (255, 255, 255), -1)
+                cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+                self.cx = cX
+                self.cy = cY
+
+                tracker.x = cX
+                tracker.y = cY
+                tracker.flag1 = self.track_flag
+               
+            else:
+                self.track_flag = False
+                tracker.flag1 = self.track_flag
+
+        for cnt in paper_cnt:
+            if cv2.contourArea(cnt) > 5000:
+                paper_cnt  = cnt
+        bbox_x, bbox_y, bbox_w, bbox_h = cv2.boundingRect(paper_cnt)
+        cv2.rectangle(image,(bbox_x,bbox_y),(bbox_x + bbox_w, bbox_y + bbox_h),(255,0,0),1)
+
+        # print("height : ", bbox_h)
+        # print("WIDTH  : ", bbox_w)
+        pixels_permm_y = bbox_h / 210
+        pixels_permm_x = bbox_w  / 297
         
-        self.track_flag = True
-        self.cx = cX
-        self.cy = cY
+        # cX = (cX - img_center_x) / pixels_permm_x
+        # cY = (cY - img_center_y) / pixels_permm_y
 
-        tracker.x = cX
-        tracker.y = cY
 
+        self.error_x = ( self.cx - img_center_x ) / pixels_permm_x
+        self.error_y = ( self.cy - img_center_y ) / pixels_permm_y
+        tracker.error_x = self.error_x
+        tracker.error_y = self.error_y
+        
+        print("world co-ordinates in the camera frame x: (%s,%s)" %(tracker.error_x, tracker.error_y))
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image )
