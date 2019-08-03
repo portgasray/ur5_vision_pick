@@ -42,13 +42,13 @@ class MoveItIkDemo:
         target_pose = PoseStamped()
         target_pose.header.frame_id = reference_frame
         target_pose.header.stamp = rospy.Time.now()     
-        target_pose.pose.position.x = 0.2593
-        target_pose.pose.position.y = 0.0636
-        target_pose.pose.position.z = 0.1787
-        target_pose.pose.orientation.x = 0.70692
-        target_pose.pose.orientation.y = 0.0
-        target_pose.pose.orientation.z = 0.0
-        target_pose.pose.orientation.w = 0.70729
+        target_pose.pose.position.x = -0.0742
+        target_pose.pose.position.y = -0.5151
+        target_pose.pose.position.z = 0.5263
+        target_pose.pose.orientation.x = -0.3811
+        target_pose.pose.orientation.y = -0.7688
+        target_pose.pose.orientation.z = 0.3292
+        target_pose.pose.orientation.w = 0.3939
         
         # 设置机器臂当前的状态作为运动初始状态
         # arm.set_start_state_to_current_state()
