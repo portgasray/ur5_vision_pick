@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: urdf_tutorial
+    relative_path: urdf/ur5_with_realsense.xacro.urdf
+    xacro_args: "--inorder "
+  SRDF:
+    relative_path: config/ur5_hitbot_with_ilc_platform.srdf
+  CONFIG:
+    author_name: lei
+    author_email: portgasray@163.com
+    generated_timestamp: 1564979340
