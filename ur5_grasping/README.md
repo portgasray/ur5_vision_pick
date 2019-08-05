@@ -33,4 +33,7 @@ z: 0.0
 ```
 Q: z axis is none!
 
-3. 
+3. run a script
+```
+rosrun ur5_grasping ur5_vision.py
+```

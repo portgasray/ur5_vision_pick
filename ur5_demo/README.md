@@ -13,5 +13,9 @@ roslaunch ur5_demo test_move.launch
 or
 
 ```
-
+rosrun ur5_demo test_move.py
+```
+you should first add execution privilege
+```
+chmod +x test_move.py
 ```
