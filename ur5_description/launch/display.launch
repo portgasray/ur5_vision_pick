@@ -1,12 +1,14 @@
 <launch>
-<arg name="gui" default="True" />
-  
-    <param name="robot_description" 
-            command="$(find xacro)/xacro --inorder '$(find ur5_description)/urdf/ur5_hitbot_with_ilc_platform.xacro.urdf'"/>
 
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  <arg name="model" default="$(find ur5_description)/urdf/ur5_with_realsense.xacro.urdf"/>
+  <arg name="gui" default="true" />
+  <arg name="rvizconfig" default="$(find ur5_description)/rviz/urdf.rviz" />
 
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  <param name="robot_description" command="$(find xacro)/xacro --inorder $(arg model)" />
+  <param name="use_gui" value="$(arg gui)"/>
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ur5_description)/config/ur5_view.rviz" required="true" />
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
 </launch>

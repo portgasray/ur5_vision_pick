@@ -928,6 +928,7 @@ limitations under the License.
     <child link="platform_base"/>
     <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
   </joint>
+
   <joint name="platform_base_link_joint" type="fixed">
     <parent link="robot_install_plate"/>
     <child link="base_link"/>
@@ -938,5 +939,29 @@ limitations under the License.
     <child link="hitbot_base"/>
     <origin rpy="0.0 0.0 0.785398163397" xyz="0.0 0.0 0.0"/>
   </joint> -->
+
+  <!-- <joint name="camera_link" type="fixed">
+    <parent link="ee_link"/>
+    <child link="hitbot_base"/>
+    <origin rpy="0.0 0.0 0.785398163397" xyz="0.0 0.0 0.0"/>
+  </joint> -->
+
+  <!-- camera_link -->
+  <link name="camera_link">
+   <visual>
+      <geometry>
+        <mesh filename="package://ur5_description/meshes/d435.dae"/>
+      </geometry>
+      <material name="LightGrey">
+        <color rgba="0.7 0.7 0.7 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="camera_link" type="fixed">
+    <parent link="wrist_3_link"/>
+    <child link="camera_link"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0 ${pi/4}"/>
+  </joint>
 </robot>
 

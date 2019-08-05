@@ -28,7 +28,7 @@ limitations under the License.
   <xacro:include filename="$(find handson_description)/urdf/ilc_platform.urdf.xacro" />
 
   <!-- arm -->
-  <xacro:ur5_robot prefix="" joint_limited="false"/>
+  <!-- <xacro:ur5_robot prefix="" joint_limited="false"/> -->
 
   <!-- hand -->
   <xacro:include filename="$(find handson_description)/urdf/hitbot/hitbot.urdf.xacro" />
