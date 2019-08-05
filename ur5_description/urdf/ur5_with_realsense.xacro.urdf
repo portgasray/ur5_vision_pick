@@ -961,7 +961,7 @@ limitations under the License.
   <joint name="camera_joint" type="fixed">
     <parent link="wrist_3_link"/>
     <child link="camera_link"/>
-    <origin xyz="0.07 0.08 0.0" rpy="-1.57 1.57 0.0" />
+    <origin xyz="-0.07 0.08 0.0" rpy="-1.57 1.57 0.0" />
   </joint>
 
   <!-- sucker link-->
@@ -969,15 +969,18 @@ limitations under the License.
    <visual>
       <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://ur5_description/meshes/sucker.stl"/>
+        <mesh filename="package://ur5_description/meshes/sucker.stl"  scale="0.0018 0.0018 0.0018"/>
       </geometry>
+      <material name="Coppery">
+        <color rgba="${125/255} ${127/255} ${80/255} 1.0"/>
+      </material>
     </visual>
   </link> 
 
   <joint name="sucker_joint" type="fixed">
     <parent link="wrist_3_link"/>
     <child link="sucker_link"/>
-    <origin xyz="0.0 0.1 0.0" rpy="0.0 0.0 0.0" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 3.14" />
   </joint>
 
 </robot>
