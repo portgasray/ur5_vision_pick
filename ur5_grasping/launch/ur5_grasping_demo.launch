@@ -1,38 +1,41 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="limited" default="true"/>
+  <!-- <arg name="limited" default="true"/>
   <arg name="paused" default="false"/>
   <arg name="gui" default="true"/>
   <arg name="debug" default="false" />
-  <arg name="sim" default="false" />
+  <arg name="sim" default="false" /> -->
 
   <!-- Remap follow_joint_trajectory -->
   <!-- Remap gripper_cmd -->
 
   <!-- start the robot -->
-  <!-- <include file="$(find ur_modern_driver)/launch/ur5_bringup.launch" >
+  <include file="$(find ur_modern_driver)/launch/ur5_bringup.launch" >
+    <arg name="limited" value="true" />
     <arg name="robot_ip" value="169.254.6.80" />
-  </include>  -->
+  </include> 
 
   <!-- Launch moveit -->
-  <include file="$(find ur5_vision_pick_moveit_config)/launch/demo.launch">
-    <!-- <arg name="limited" default="$(arg limited)"/> -->
-    <!-- <arg name="debug" default="$(arg debug)" /> -->
-  </include>
+  <!-- <include file="$(find ur5_pick_moveit_config)/launch/demo.launch">
+    <arg name="limited" default="$(arg limited)"/>
+    <arg name="debug" default="$(arg debug)" />
+  </include> -->
 
   <!-- start realsense camera -->
   <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch" /> -->
 
-  <!-- <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot" args=" -0.07427868848074914 -0.5151402712869437 0.5263202824952005 -0.3811774134284603 -0.7688461277047242 0.32927060898269445  0.39390389369185613 base_link camera_link 100" /> -->
+  <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot" args=" -0.07427868848074914 -0.5151402712869437 0.5263202824952005 -0.3811774134284603 -0.7688461277047242 0.32927060898269445  0.39390389369185613 base_link camera_link 100" />
 
 <!-- start vision detection -->
 
 <!-- start ur5 motion planning -->
 
 <!-- the cylinder poses publisher node -->
-<!-- <node name="ur5_vision" pkg="ur5_notebook" type="ur5_vision.py" output="screen" />
+
+<!--
+<node name="ur5_vision" pkg="ur5_notebook" type="ur5_vision.py" output="screen" />
 <node name="ur5_mp" pkg="ur5_notebook" type="ur5_mp.py" output="screen" />
-<node name="ur5_gripper" pkg="ur5_notebook" type="ur5_gripper.py" output="screen"/> -->
-  
+<node name="ur5_gripper" pkg="ur5_notebook" type="ur5_gripper.py" output="screen"/> 
+-->
 
 </launch>

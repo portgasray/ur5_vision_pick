@@ -72,16 +72,24 @@ if __name__ == "__main__":
     arm.set_start_state_to_current_state()
     plan = arm.plan()
     arm.execute(plan)
-    # rospy.sleep(1)
+    rospy.sleep(1)
 
-    while not rospy.is_shutdown():
-        # print("not shutdown")
-        rate.sleep()
-        try:
-            t = tf_listener.getLatestCommonTime('/base_link', "ur5_camera_to_robot")
-            (trans,rot) = listener.lookupTransform('/base_link', "ur5_camera_to_robot", t)
-            print "ur5_camera_to_robot:" + str(trans)
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            continue
+    # while not rospy.is_shutdown():
+    #     # print("not shutdown")
+    #     rate.sleep()
+    #     try:
+    #         t = tf_listener.getLatestCommonTime('/base_link', "ur5_camera_to_robot")
+    #         (trans,rot) = listener.lookupTransform('/base_link', "ur5_camera_to_robot", t)
+    #         print "ur5_camera_to_robot:" + str(trans)
+    #     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+    #         continue
     # print("world co-ordinates in the camera frame x,y : (%s,%s)" %(error_x, error_y))
+
+    pose_goal = geometry_msgs.msg.Pose()
+    pose_goal.orientation.w = 1.0
+    pose_goal.position.x = 0.0
+    pose_goal.position.y = 500
+    pose_goal.position.z = 62
+
+    arm.set_pose_target(pose_goal)
     
