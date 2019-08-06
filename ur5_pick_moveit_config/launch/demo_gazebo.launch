@@ -22,7 +22,7 @@
   <arg name="gazebo_gui" default="true"/>
   <arg name="paused" default="false"/>
   <!-- By default, use the urdf location provided from the package -->
-  <arg name="urdf_path" default="$(find urdf_tutorial)/urdf/ur5_with_realsense.xacro.urdf"/>
+  <arg name="urdf_path" default="$(find ur5_description)/urdf/ur5_with_realsense.xacro.urdf"/>
 
   <!-- launch the gazebo simulator and spawn the robot -->
   <include file="$(find ur5_pick_moveit_config)/launch/gazebo.launch" >

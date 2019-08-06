@@ -18,7 +18,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-<robot name="ur5_hitbot_with_ilc_platform" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="ur5_pick" xmlns:xacro="http://ros.org/wiki/xacro">
   <gazebo>
     <plugin filename="libgazebo_ros_control.so" name="ros_control">
       <!--robotNamespace>/</robotNamespace-->

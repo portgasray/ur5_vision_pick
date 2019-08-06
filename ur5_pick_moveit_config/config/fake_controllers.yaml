@@ -10,3 +10,6 @@ controller_list:
   - name: fake_hand_controller
     joints:
       []
+initial:
+  - group: arm
+    pose: home

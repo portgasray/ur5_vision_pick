@@ -17,8 +17,13 @@
 
   <!-- Launch moveit -->
   <!-- <include file="$(find ur5_pick_moveit_config)/launch/demo.launch">
-    <arg name="limited" default="$(arg limited)"/>
-    <arg name="debug" default="$(arg debug)" />
+  </include> -->
+
+  <!-- <include file="$(find ur5_pick_moveit_config)/launch/move_group.launch">
+  </include> -->
+
+  <!-- launch rviz -->
+  <!-- <include file="$(find ur5_pick_moveit_config)/launch/moveit_rviz.launch">
   </include> -->
 
   <!-- start realsense camera -->
@@ -31,7 +36,6 @@
 <!-- start ur5 motion planning -->
 
 <!-- the cylinder poses publisher node -->
-
 <!--
 <node name="ur5_vision" pkg="ur5_notebook" type="ur5_vision.py" output="screen" />
 <node name="ur5_mp" pkg="ur5_notebook" type="ur5_mp.py" output="screen" />
