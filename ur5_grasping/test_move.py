@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from math import pi
+import tf
+import realsense2_camera
 import sys
 import copy
 import rospy
@@ -39,26 +41,20 @@ def all_close(goal, actual, tolerance):
         return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
     return True
 
-def image_callback(msg):
-    image=cv_bridge.CvBridge().imgmsg_to_cv2(msg, desired_encoding='bgr8')
-    hsv=cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    lower_yellow=np.array([0, 43, 46])
-    upper_yellow=np.array([34, 255, 255])
-    mask=cv2.inRange(hsv, lower_yellow, upper_yellow)
-    (_, cnts, _)=cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    h, w, d = image.shape
-    M=cv2.moments(mask)
-    if M['m00'] > 0:
-        cx=int(M['m10']/M['m00'])
-        cy=int(M['m01']/M['m00'])
-        cv2.circle(image, (cx, cy), 10, (0,0,0), -1)
-        cv2.putText(image, "({}, {})".format(int(cx), int(cy)), (int(cx-5), int(cy+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        cv2.drawContours(image, cnts, -1, (255, 255, 255),1)
-    cv2.namedWindow("window", 1)
-    cv2.imshow("window", image)
-    cv2.waitKey(0)
-        # print ("============ cx= ", cx, "      cy= ", cy)
-    return cx,cy
+def tfpoint():
+    point1=geometry_msgs.msg.PointStamped()
+    point1.header.stamp=rospy.Time(0)
+    point1.header.frame_id="camera_link"
+    point1.point.x= 1.0
+    point1.point.y= 2.0
+    point1.point.z= 3.0
+    point2=geometry_msgs.msg.PointStamped()
+    point2=tf.TransformerROS().transformPoint("base_link", point1)
+    px=point2.point.x
+    py=point2.point.y
+    pz=point2.point.z
+    print ("point in world: ", point2)
+    return True
 
 class MoveGroupTutorial(object):
     def __init__(self):
@@ -73,7 +69,7 @@ class MoveGroupTutorial(object):
         planning_frame=group.get_planning_frame()
         print ("============ Reference frame: %s" % planning_frame)
         eef_link = group.get_end_effector_link()
-        print "============ End effector: %s" % eef_link
+        print ("============ End effector: %s" % eef_link)
         group_names = robot.get_group_names()
         print "============ Robot Groups:", robot.get_group_names()
         print "============ Printing robot state"
@@ -88,24 +84,31 @@ class MoveGroupTutorial(object):
         self.planning_frame = planning_frame
         self.eef_link = eef_link
         self.group_names = group_names
-        # self.track_flag=False
-        # self.default_pose_flag=True
+        self.track_flag=False
+        self.default_pose_flag=True
         self.cx=400.0
         self.cy=400.0
         self.bridge=cv_bridge.CvBridge()
-        self.image_sub=rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
+        self.image_sub=rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
 
     def go_to_ready_pose(self):
         group=self.group
         joint_goal=group.get_current_joint_values()
         print(type(joint_goal), joint_goal)
 
-        joint_goal[0]= pi * 0.5
-        joint_goal[1]= -pi * 0.5
-        joint_goal[2]= -pi * 0.5
-        joint_goal[3]= -pi * 0.5
-        joint_goal[4]= pi * 0.5
-        joint_goal[5]= 0
+        # joint_goal[0]= pi * 0.5
+        # joint_goal[1]= -pi * 0.5
+        # joint_goal[2]= -pi * 0.5
+        # joint_goal[3]= -pi * 0.5
+        # joint_goal[4]= pi * 0.5
+        # joint_goal[5]= 0
+
+        joint_goal[0] = 1.5564
+        joint_goal[1] = -1.5700
+        joint_goal[2] = -1.4161
+        joint_goal[3] = -1.7574
+        joint_goal[4] = 1.6918
+        joint_goal[5] = 0.0
 
         group.go(joint_goal, wait=True)
         group.stop()
@@ -117,15 +120,25 @@ class MoveGroupTutorial(object):
         current_pose=group.get_current_pose().pose
         print("Current pose: ", current_pose)
         pose_goal=geometry_msgs.msg.Pose()
-        pose_goal.orientation.x= 0.5
-        pose_goal.orientation.y= 0.5
-        pose_goal.orientation.z= -0.5
-        pose_goal.orientation.w= 0.5
-        pose_goal.position.x= 0.0 #0
-        pose_goal.position.y= -0.5 #-0.5
-        pose_goal.position.z= 0.07 #0.44
+
+        # pose_goal.orientation.x= 0.5
+        # pose_goal.orientation.y= 0.5
+        # pose_goal.orientation.z= -0.5
+        # pose_goal.orientation.w= 0.5
+        # pose_goal.position.x= 0.0 #0
+        # pose_goal.position.y= -0.5 #-0.5
+        # pose_goal.position.z= 0.15 #0.44
+
+        pose_goal.orientation.x= -0.47209038893
+        pose_goal.orientation.y= 0.54098313754
+        pose_goal.orientation.z= 0.51775541057
+        pose_goal.orientation.w= 0.465185172166
+        pose_goal.position.x= 0.0
+        pose_goal.position.y= 0.5
+        pose_goal.position.z= 0.062
+        
         group.set_pose_target(pose_goal)
-        plan=group.go(wait=True)
+        plan = group.go(wait=True)
         group.stop()
         group.clear_pose_targets()
         current_pose=group.get_current_pose().pose
@@ -141,9 +154,9 @@ class MoveGroupTutorial(object):
         pose_goal.orientation.y= 0.5
         pose_goal.orientation.z= -0.5
         pose_goal.orientation.w= 0.5
-        pose_goal.position.x= -0.20 #0
-        pose_goal.position.y= -0.8 #-0.5
-        pose_goal.position.z= 0.08 #0.44
+        pose_goal.position.x= -0.3 #0
+        pose_goal.position.y= -0.7 #-0.5
+        pose_goal.position.z= 0.2 #0.44
         group.set_pose_target(pose_goal)
         plan=group.go(wait=True)
         group.stop()
@@ -152,32 +165,50 @@ class MoveGroupTutorial(object):
         print("New current pose: ", current_pose)
         return all_close(pose_goal, current_pose, 0.01)
 
-
-#   using OpenCV here to get XYZ
-#   def find_position(self):
-# def image_callback(msg):
-#     image=cv_bridge.CvBridge().imgmsg_to_cv2(msg, desired_encoding='bgr8')
-#     hsv=cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-#     lower_yellow=np.array([0, 43, 46])
-#     upper_yellow=np.array([34, 255, 255])
-#     mask=cv2.inRange(hsv, lower_yellow, upper_yellow)
-#     (_, cnts, _)=cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-#     h, w, d = image.shape
-#     M=cv2.moments(mask)
-#     if M['m00'] > 0:
-#         cx=int(M['m10']/M['m00'])
-#         cy=int(M['m01']/M['m00'])
-#         # cv2.namedWindow("window", 1)
-#         # cv2.imshow("window", image)
-#         # cv2.waitKey(0)
-#         #print ("============ cx= ", cx, "      cy= ", cy)
-#     return cx,cy
-# #   def open_xipan(self):
-
-# #   def close_xipan(self):
+def tfpoint(self):
+    group=self.group
+    point1=geometry_msgs.msg.PointStamped()
+    # point1.header.stamp
+    point1.header.frame_id="camera_link"
+    point1.point.x= 1.0
+    point1.point.y= 2.0
+    point1.point.z= 3.0
+    point2=geometry_msgs.msg.PointStamped()
+    tf.TransformerROS.transformpoint("base_link", point1, point2)
+    px=point2.point.x
+    py=point2.point.y
+    pz=point2.point.z
+    print ("point in world: ", point2)
+    return True
 
 
-# tutorial=MoveGroupTutorial()
+
+        #   using OpenCV here to get XYZ
+        #   def find_position(self):
+    def image_callback(self, msg):
+        group=self.group
+        image=self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        hsv=cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        lower_yellow=np.array([0, 43, 46])
+        upper_yellow=np.array([34, 255, 255])
+        mask=cv2.inRange(hsv, lower_yellow, upper_yellow)
+        (_, cnts, _)=cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        h, w, d = image.shape
+        M=cv2.moments(mask)
+        if M['m00'] > 0:
+            cx=int(M['m10']/M['m00'])
+            cy=int(M['m01']/M['m00'])
+        cv2.namedWindow("window", 1)
+        cv2.imshow("window", image)
+        cv2.waitKey(0)
+        print ("============ cx= ", cx, "      cy= ", cy)
+        return 0
+    #   def open_xipan(self):
+
+    #   def close_xipan(self):
+
+
+tutorial=MoveGroupTutorial()
 def main():
     try:
         print "============ Press `Enter` to begin the tutorial by setting up the moveit_commander"
@@ -191,20 +222,19 @@ def main():
         print "============ Press `Enter` to go to pose goal and get the box"
         raw_input()
         tutorial.go_to_pose_goal()
-        # cx,cy=image_callback()
-        # print ("============ cx,cy", cx,cy)
-        #tutorial.image_callback(self, msg)
-       # tutorial.open_xipan()
+        # tutorial.image_callback(Image)
+    #     tfpoint()
+    #    # tutorial.open_xipan()
 
-        print "============ Press `Enter` to put down the box"
-        raw_input()
-        tutorial.go_to_put_down()
-        #tutorial.close_xipan()
+    #     print "============ Press `Enter` to put down the box"
+    #     raw_input()
+    #     tutorial.go_to_put_down()
+    #     #tutorial.close_xipan()
 
-        print "============ Press 'Enter' to return to ready pose"
-        raw_input()
-        tutorial.go_to_ready_pose()
-        raw_input()
+    #     print "============ Press 'Enter' to return to ready pose"
+    #     raw_input()
+    #     tutorial.go_to_ready_pose()
+
         print "============ Finished"
     except rospy.ROSInterruptException:
         return
