@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import sys, rospy, tf, moveit_commander, math, moveit_msgs.msg
+import tf2_ros, tf2_geometry_msgs
 import numpy as np
+
+from sensor_msgs.msg import Image
 from geometry_msgs.msg import *
 from moveit_commander.conversions import pose_to_list
 from tf.transformations import quaternion_from_euler
@@ -34,119 +37,185 @@ def all_close(goal, actual, tolerance):
         return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
     return True
 
-def tracking_callback(msg):
-    track_flag = msg.flag1
-    cx = msg.x
-    cy = msg.y
-    error_x = msg.error_x
-    error_y = msg.error_y   
+class UR5_Pick_Up(object):
+    def __init__(self):
+        super(UR5_Pick_Up, self).__init__()
+        # Initialize the move_group API
+        moveit_commander.roscpp_initialize(sys.argv)
+        rospy.init_node('ur5_mp', anonymous=True)
+        robot = moveit_commander.RobotCommander()
+        scene = moveit_commander.PlanningSceneInterface()
+        group_name = "manipulator" #arm #manipulator
+        # Initialize the move group for the ur5_arm
+        group = moveit_commander.MoveGroupCommander(group_name)
+        # Set the reference frame for pose targets
+        reference_frame = "base_link"
+        # Set the ur5_arm reference frame accordingly
+        group.set_pose_reference_frame(reference_frame)
+        # Allow replanning to increase the odds of a solution
+        group.allow_replanning(True)
+        
+        display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path', moveit_msgs.msg.DisplayTrajectory, queue_size=20)
+        planning_frame = group.get_planning_frame()
+        print ("============ Reference frame: %s ============ " % planning_frame)
+        # Get the name of the end-effector link
+        eef_link = group.get_end_effector_link()
+        print ("============ End effector: %s ============ " % eef_link)
+        group_names = robot.get_group_names()
+        print "============ Robot Groups:", robot.get_group_names()
+        print "============ Printing robot state"
+        print robot.get_current_state()
 
-def go_to_ready_pose(group):
-    # Set arm back to home pose
-    # group.set_named_target('home')
-    # group.go()
-    # rospy.sleep(1)
-    # Specify default (idle) joint states
-    default_joint_states = group.get_current_joint_values()
-    print(type(default_joint_states), default_joint_states)
-    default_joint_states[0] = 1.5564
-    default_joint_states[1] = -1.5700
-    default_joint_states[2] = -1.4161
-    default_joint_states[3] = -1.7574
-    default_joint_states[4] = 1.6918
-    default_joint_states[5] = 0.0
+        # Allow some leeway in position (meters) and orientation (radians)
+        group.set_goal_position_tolerance(0.01)
+        group.set_goal_orientation_tolerance(0.1)
+        group.set_planning_time(0.1)
+        group.set_max_acceleration_scaling_factor(.15)
+        group.set_max_velocity_scaling_factor(.15)
 
-    # Set the internal state to the current state
-    group.go(default_joint_states, wait=True)
-    group.stop()
-    rospy.sleep(1)
-    current_joints = group.get_current_joint_values()
+        self.robot = robot
+        self.scene = scene
+        self.group = group
+        self.display_trajectory_publisher = display_trajectory_publisher
+        self.planning_frame = planning_frame
+        self.eef_link = eef_link
+        self.group_names = group_names
+        self.track_flag = False
+        self.default_pose_flag = True
+        self.cx = 400.0
+        self.cy = 400.0
+        self.cz = 620.0
+        #default position
+        self.x = 0.0
+        self.y = -0.5
+        self.z = 0.62
+        # self.bridge=cv_bridge.CvBridge()
+        # self.image_sub=rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
+        self.cxy_sub = rospy.Subscriber('camera_xy', Tracker, self.tracking_callback, queue_size=1)
+        self.state_change_time = rospy.Time.now()
+
+        self.tf_listener_ = tf.TransformListener()
+        rate = rospy.Rate(10)
+
+
+    def go_to_ready_pose(self):
+        # Set arm back to home pose
+        # group.set_named_target('home')
+        # group.go()
+        # rospy.sleep(1)
+        # Specify default (idle) joint states
+        group = self.group
+        default_joint_states = group.get_current_joint_values()
+        print(type(default_joint_states), default_joint_states)
+        default_joint_states[0] = 1.5564
+        default_joint_states[1] = -1.5700
+        default_joint_states[2] = -1.4161
+        default_joint_states[3] = -1.7574
+        default_joint_states[4] = 1.6918
+        default_joint_states[5] = 0.0
+
+        # Set the internal state to the current state
+        group.go(default_joint_states, wait=True)
+        group.stop()
+        rospy.sleep(1)
+        current_joints = group.get_current_joint_values()
+        current_pose = self.group.get_current_pose().pose
+        print("current pose: ", current_pose)
+        return all_close(default_joint_states, current_joints, 0.01)
+
+
+    def go_to_pose_goal(self):
+        group = self.group
+        current_pose = group.get_current_pose().pose
+        print("Current pose: ", current_pose)
+        pose_goal=geometry_msgs.msg.Pose()
+
+        # pose_goal.orientation.x= 0.5
+        # pose_goal.orientation.y= 0.5
+        # pose_goal.orientation.z= -0.5
+        # pose_goal.orientation.w= 0.5
+        ## get target goal position
+        pose_goal.orientation.x= 0.5
+        pose_goal.orientation.y= 0.5
+        pose_goal.orientation.z= -0.5
+        pose_goal.orientation.w= 0.5
+        
+        # print("(%s, %s, %s)" %( x, y, z))
+        pose_goal.position.x = 0.0 #0
+        pose_goal.position.y = -0.5 #-0.5
+        pose_goal.position.z = 0.062 #0.44     
+
+        group.set_pose_target(pose_goal)
+        plan = group.go(wait=True)
+        group.stop()
+        group.clear_pose_targets()
+        current_pose=group.get_current_pose().pose
+        print("New current pose: ", current_pose)
+        return all_close(pose_goal, current_pose, 0.01)
+
+    def tracking_callback(self, msg):
+        track_flag = msg.flag1
+        self.cx = msg.x
+        self.cy = msg.y
+        print ("receive coordinates in the camera frame x, y: (%s,%s)" %(self.cx, self.cy))
     
-    current_pose = group.get_current_pose().pose
-    print("current pose: ", current_pose)
+    def coordinate_convert(self):
+        print "Start trans ... ... "
+        if self.tf_listener_.frameExists("base_link") and self.tf_listener_.frameExists("camera_link"):
+            t = self.tf_listener_.getLatestCommonTime("base_link", "camera_link")
+            p1 = geometry_msgs.msg.PoseStamped()
+            p1.header.frame_id = "camera_link"
+            p1.pose.orientation.w = 0.5    # Neutral orientation
+            p_in_base = self.tf_listener_.transformPose("base_link", p1)
+            print "Position of the camera_link in the robot base:"
+            print p_in_base
+        # listener = self.tf_listener
+        # # # listener = tf.TransformListener()
+        # # rate = rospy.Rate(10.0)
+        # # while not rospy.is_shutdown():
+        # #     try:
+        # #         (trans,rot) = listener.lookupTransform('base_link', 'camera_link', rospy.Time(0))
+        # #     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+        # #         continue
+        # # print("item_trans:", str(trans))
+        # # self.scene.addCube("item", 0.05, trans[0], trans[1], trans[2])
+        # point1=geometry_msgs.msg.PointStamped()
+        # # point1.header.stamp
+        # point1.header.frame_id="camera_link"
+        # point1.point.x= self.cx
+        # point1.point.y= self.cy
+        # point1.point.z= 0.062
+        # point2=geometry_msgs.msg.PointStamped()
+        # listener.TransformerROS.transformpoint("base_link", point1, point2)
+        # px=point2.point.x
+        # py=point2.point.y
+        # pz=point2.point.z
+        # print ("point in world: ", point2)
+        # return True
 
-    return all_close(default_joint_states, current_joints, 0.01)
-
-
-def go_to_pose_goal(group):
-    current_pose=group.get_current_pose().pose
-    print("Current pose: ", current_pose)
-    pose_goal=geometry_msgs.msg.Pose()
-
-    # pose_goal.orientation.x= 0.5
-    # pose_goal.orientation.y= 0.5
-    # pose_goal.orientation.z= -0.5
-    # pose_goal.orientation.w= 0.5
-
-    pose_goal.orientation.x= 0.5
-    pose_goal.orientation.y= 0.5
-    pose_goal.orientation.z= -0.5
-    pose_goal.orientation.w= 0.5
-    
-    pose_goal.position.x= 0.0 #0
-    pose_goal.position.y= -0.5 #-0.5
-    pose_goal.position.z= 0.062 #0.44     
-
-    group.set_pose_target(pose_goal)
-    plan = group.go(wait=True)
-    group.stop()
-    group.clear_pose_targets()
-    current_pose=group.get_current_pose().pose
-    print("New current pose: ", current_pose)
-    return all_close(pose_goal, current_pose, 0.01)
-
-def main(arm):
-    try:
-        print "============ Press `Enter` to go to ready pose"
-        raw_input()
-        go_to_ready_pose(arm)
-
-        print "============ Press `Enter` to go to pose goal and get the box"
-        raw_input()
-        go_to_pose_goal(arm)
-        print "============ Finished"
-
-    except rospy.ROSInterruptException:
-        return
-    except KeyboardInterrupt:
-        return
+ur5_pick_up = UR5_Pick_Up()
 
 if __name__ == "__main__":
-
-    rospy.init_node("ur5_mp", anonymous=False)
-    cxy_sub = rospy.Subscriber('camera_xy', Tracker, tracking_callback, queue_size=1)
-
-    # object_cnt = 0
-    # track_flag = False
-    # default_pose_flag = True
-    # cx = 400.0
-    # cy = 400.0
-    state_change_time = rospy.Time.now()
-    rospy.loginfo("Starting node moveit_cartesian_path")
-    # rospy.on_shutdown(cleanup)
-
-    # Initialize the move_group API
-    moveit_commander.roscpp_initialize(sys.argv)
-    # Initialize the move group for the ur5_arm
-    # arm = moveit_commander.MoveGroupCommander('arm')
-    arm = moveit_commander.MoveGroupCommander('manipulator')
-    # Get the name of the end-effector link
-    end_effector_link = arm.get_end_effector_link()
-    # Set the reference frame for pose targets
-    reference_frame = "/base_link"
-    # Set the ur5_arm reference frame accordingly
-    arm.set_pose_reference_frame(reference_frame)
-    # Allow replanning to increase the odds of a solution
-    arm.allow_replanning(True)
-
-    tf_listener = tf.TransformListener()
-    rate = rospy.Rate(10)
-
-    # Allow some leeway in position (meters) and orientation (radians)
-    arm.set_goal_position_tolerance(0.01)
-    arm.set_goal_orientation_tolerance(0.1)
-    arm.set_planning_time(0.1)
-    arm.set_max_acceleration_scaling_factor(.15)
-    arm.set_max_velocity_scaling_factor(.15)
+      
+    # image_sub = rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
+    # try:
+    print "============ Press `Enter` to go to ready pose"
+    raw_input()
+    ur5_pick_up.go_to_ready_pose()
     
-    main(arm)
+    print "============ Press `Enter` to go to convert coordinate"
+    raw_input()
+    ur5_pick_up.coordinate_convert()
+
+    print "============ Press `Enter` to go to pose goal and get the box"
+    raw_input()
+    ur5_pick_up.go_to_pose_goal()
+    print "============ Finished"
+
+    # except rospy.ROSInterruptException:
+    #     return
+    # except KeyboardInterrupt:
+    #     return
+
+    
+    # position_xy_pub = rospy.Publisher('camera_xy', Tracker, queue_size=1)
