@@ -33,75 +33,52 @@ class ur5_vision:
         h, w, d = image.shape
         img_center_x = w/2
         img_center_y = h/2
-        # convert image to grayscale image
-        gray_image =  cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        kernel_size = 13
-        radius = 0
-        blurred_image = cv2.GaussianBlur(gray_image , (kernel_size, kernel_size) , radius)
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        # black color
+        black = 97
+        sensitivity = 15
+        lower_black = np.array([black - sensitivity, 189, 0])
+        upper_black = np.array([black + sensitivity,255,255])
+        a4_paper =  cv2.inRange(hsv, lower_black, upper_black)
 
-        #convert the grayscale image to binary image
-        threshold = 136
-        max_value = 255
-        ret_, thresh = cv2.threshold(blurred_image, threshold, max_value, cv2.THRESH_BINARY)
+        _, contours, hierarchy = cv2.findContours(a4_paper.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cnts = [ c for c in contours if cv2.contourArea(c) > 1000 and cv2.contourArea(c) < h * w * 0.9 ]
 
-        #Finding contours
-        _, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        child_contour = hierarchy [0, :,2]
-        cnts = contours
-        paper_cnt = contours
+        paper_index = 0
+        block_index = 1
 
-        cnts = [ cnts[i] for i in child_contour ]
-        cX = 0 
-        cY = 0
-        for i, c in enumerate(cnts):
-            area = cv2.contourArea(c) 
-            if area > 100:
-                self.track_flag = True
-                # calculate momnets of binary image
-                M = cv2.moments(c)
-                # calculate x, y coordinate of center
-                if M["m00"] != 0:
-                    cX = int(M["m10"] / M["m00"])
-                    cY = int(M["m01"] / M["m00"])
-                x, y, w, h = cv2.boundingRect(c)
-                cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
-                #draw a circle center
-                cv2.circle(image, (cX, cY), 1, (255, 255, 255), -1)
-                cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        x, y, w, h = cv2.boundingRect(cnts[paper_index])
+        cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
 
-                self.cx = cX
-                self.cy = cY
+        pixels_permm_x = w/290
+        pixels_permm_y = h/202
 
-                tracker.x = cX
-                tracker.y = cY
-                tracker.flag1 = self.track_flag
-               
-            else:
-                self.track_flag = False
-                tracker.flag1 = self.track_flag
+        ## center of block
+        block_cnt = cnts[block_index]
+        M = cv2.moments(block_cnt)
+        # M = cv2.moments(thresh)
+        # calculate x, y coordinate of center
+        if M["m00"] != 0:
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
 
-        for cnt in paper_cnt:
-            if cv2.contourArea(cnt) > 5000:
-                paper_cnt  = cnt
-        bbox_x, bbox_y, bbox_w, bbox_h = cv2.boundingRect(paper_cnt)
-        cv2.rectangle(image,(bbox_x,bbox_y),(bbox_x + bbox_w, bbox_y + bbox_h),(255,0,0),1)
+        # drawing contour
+        cv2.drawContours(result, [block_cnt], 0, (0,255,0), 2)
+        cv2.circle(image, (cX, cY), 3, (0,0,255), -1)
+        cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-        # print("height : ", bbox_h)
-        # print("WIDTH  : ", bbox_w)
-        pixels_permm_y = bbox_h / 210
-        pixels_permm_x = bbox_w  / 297
-        
-        # cX = (cX - img_center_x) / pixels_permm_x
-        # cY = (cY - img_center_y) / pixels_permm_y
+        # cX = 0
+        # cY = 0
+
+        cX = (cX - img_center_x) / pixels_permm_x
+        cY = (cY - img_center_y) / pixels_permm_y
+
+        tracker.x = cX
+        tracker.y = cY
 
 
-        self.error_x = ( self.cx - img_center_x ) / pixels_permm_x
-        self.error_y = ( self.cy - img_center_y ) / pixels_permm_y
-        tracker.error_x = self.error_x
-        tracker.error_y = self.error_y
-        
-        print("world co-ordinates in the camera frame x: (%s,%s)" %(tracker.error_x, tracker.error_y))
+        print("world co-ordinates in the camera frame x: (%s,%s)" %(tracker.x, tracker.y))
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image )
