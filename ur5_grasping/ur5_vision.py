@@ -64,7 +64,7 @@ class ur5_vision:
             cY = int(M["m01"] / M["m00"])
 
         # drawing contour
-        cv2.drawContours(result, [block_cnt], 0, (0,255,0), 2)
+        cv2.drawContours(image, [block_cnt], 0, (0,255,0), 2)
         cv2.circle(image, (cX, cY), 3, (0,0,255), -1)
         cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
@@ -73,6 +73,8 @@ class ur5_vision:
 
         cX = (cX - img_center_x) / pixels_permm_x
         cY = (cY - img_center_y) / pixels_permm_y
+
+        # img_center_x 
 
         tracker.x = cX
         tracker.y = cY

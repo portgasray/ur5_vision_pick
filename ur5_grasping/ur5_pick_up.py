@@ -88,7 +88,8 @@ class UR5_Pick_Up(object):
         #default position
         self.x = 0.0
         self.y = -0.5
-        self.z = 0.62
+        self.z = 0.52
+        self.target_pose = Pose()
         # self.bridge=cv_bridge.CvBridge()
         # self.image_sub=rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
         self.cxy_sub = rospy.Subscriber('camera_xy', Tracker, self.tracking_callback, queue_size=1)
@@ -107,12 +108,19 @@ class UR5_Pick_Up(object):
         group = self.group
         default_joint_states = group.get_current_joint_values()
         print(type(default_joint_states), default_joint_states)
-        default_joint_states[0] = 1.5564
-        default_joint_states[1] = -1.5700
-        default_joint_states[2] = -1.4161
-        default_joint_states[3] = -1.7574
-        default_joint_states[4] = 1.6918
-        default_joint_states[5] = 0.0
+        # default_joint_states[0] = 1.5564
+        # default_joint_states[1] = -1.5700
+        # default_joint_states[2] = -1.4161
+        # default_joint_states[3] = -1.7574
+        # default_joint_states[4] = 1.6918
+        # default_joint_states[5] = 0.0
+
+        default_joint_states[0] = 1.647 
+        default_joint_states[1] = -1.560
+        default_joint_states[2] = -1.450
+        default_joint_states[3] = -1.732
+        default_joint_states[4] = 1.613
+        default_joint_states[5] = 0.774
 
         # Set the internal state to the current state
         group.go(default_joint_states, wait=True)
@@ -124,40 +132,11 @@ class UR5_Pick_Up(object):
         return all_close(default_joint_states, current_joints, 0.01)
 
 
-    def go_to_pose_goal(self):
-        group = self.group
-        current_pose = group.get_current_pose().pose
-        print("Current pose: ", current_pose)
-        pose_goal=geometry_msgs.msg.Pose()
-
-        # pose_goal.orientation.x= 0.5
-        # pose_goal.orientation.y= 0.5
-        # pose_goal.orientation.z= -0.5
-        # pose_goal.orientation.w= 0.5
-        ## get target goal position
-        pose_goal.orientation.x= 0.5
-        pose_goal.orientation.y= 0.5
-        pose_goal.orientation.z= -0.5
-        pose_goal.orientation.w= 0.5
-        
-        # print("(%s, %s, %s)" %( x, y, z))
-        pose_goal.position.x = 0.0 #0
-        pose_goal.position.y = -0.5 #-0.5
-        pose_goal.position.z = 0.062 #0.44     
-
-        group.set_pose_target(pose_goal)
-        plan = group.go(wait=True)
-        group.stop()
-        group.clear_pose_targets()
-        current_pose=group.get_current_pose().pose
-        print("New current pose: ", current_pose)
-        return all_close(pose_goal, current_pose, 0.01)
-
     def tracking_callback(self, msg):
         track_flag = msg.flag1
         self.cx = msg.x
         self.cy = msg.y
-        print ("receive coordinates in the camera frame x, y: (%s,%s)" %(self.cx, self.cy))
+        # print ("receive coordinates in the camera frame x, y: (%s,%s)" %(self.cx, self.cy))
     
     def coordinate_convert(self):
         print "Start trans ... ... "
@@ -167,6 +146,10 @@ class UR5_Pick_Up(object):
             p1.header.frame_id = "camera_link"
             p1.pose.orientation.w = 0.5    # Neutral orientation
             p_in_base = self.tf_listener_.transformPose("base_link", p1)
+            self.target_pose.position.x = p_in_base.pose.position.x
+            self.target_pose.position.y = p_in_base.pose.position.y
+            self.target_pose.position.z = p_in_base.pose.position.z
+            # self.target_pose.orientation = Quaternion(*quaternion_from_euler(p_in_base.pose.orientation))
             print "Position of the camera_link in the robot base:"
             print p_in_base
         # listener = self.tf_listener
@@ -193,6 +176,40 @@ class UR5_Pick_Up(object):
         # print ("point in world: ", point2)
         # return True
 
+    def go_to_pose_goal(self):
+            group = self.group
+            current_pose = group.get_current_pose().pose
+            print("Current pose: ", current_pose)
+            pose_goal=geometry_msgs.msg.Pose()
+
+            pose_goal.orientation.x= 0.5
+            pose_goal.orientation.y= 0.5
+            pose_goal.orientation.z= -0.5
+            pose_goal.orientation.w= 0.5
+            ## get target goal position
+
+            # pose_goal.orientation.x= 0.5
+            # pose_goal.orientation.y= 0.5
+            # pose_goal.orientation.z= -0.5
+            # pose_goal.orientation.w= 0.5
+            
+            print("target pose: " ,self.target_pose)
+
+            pose_goal.position.x =  self.target_pose.position.x #0
+            pose_goal.position.y =  self.target_pose.position.y #-0.5
+            pose_goal.position.z =  self.target_pose.position.z #0.44     
+
+            # pose_goal.position.x = 0.0 #0
+            # pose_goal.position.y = -0.5 #-0.5
+            # pose_goal.position.z = 0.062 #0.44    
+            # pose_goal = self.target_pose
+            group.set_pose_target(pose_goal)
+            plan = group.go(wait=True)
+            group.stop()
+            group.clear_pose_targets()
+            current_pose=group.get_current_pose().pose
+            print("New current pose: ", current_pose)
+            return all_close(pose_goal, current_pose, 0.01)
 ur5_pick_up = UR5_Pick_Up()
 
 if __name__ == "__main__":

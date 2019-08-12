@@ -51,3 +51,8 @@ $ roslaunch ur5_moveit_config moveit_rviz.launch config:=true
 
 $ roslaunch realsense2_camera rs_rgbd.launch
 ```
+
+6. 
+```
+$ rosrun ur5_grasping ur5_pick_up.py
+```
