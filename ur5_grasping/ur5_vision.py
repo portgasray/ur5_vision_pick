@@ -77,7 +77,6 @@ class ur5_vision:
         tracker.x = cX
         tracker.y = cY
 
-
         print("world co-ordinates in the camera frame x: (%s,%s)" %(tracker.x, tracker.y))
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
