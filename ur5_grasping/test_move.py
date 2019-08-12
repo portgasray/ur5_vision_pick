@@ -165,21 +165,21 @@ class MoveGroupTutorial(object):
         print("New current pose: ", current_pose)
         return all_close(pose_goal, current_pose, 0.01)
 
-def tfpoint(self):
-    group=self.group
-    point1=geometry_msgs.msg.PointStamped()
-    # point1.header.stamp
-    point1.header.frame_id="camera_link"
-    point1.point.x= 1.0
-    point1.point.y= 2.0
-    point1.point.z= 3.0
-    point2=geometry_msgs.msg.PointStamped()
-    tf.TransformerROS.transformpoint("base_link", point1, point2)
-    px=point2.point.x
-    py=point2.point.y
-    pz=point2.point.z
-    print ("point in world: ", point2)
-    return True
+    def tfpoint(self):
+        group=self.group
+        point1=geometry_msgs.msg.PointStamped()
+        # point1.header.stamp
+        point1.header.frame_id="camera_link"
+        point1.point.x= 1.0
+        point1.point.y= 2.0
+        point1.point.z= 3.0
+        point2=geometry_msgs.msg.PointStamped()
+        tf.TransformerROS.transformpoint("base_link", point1, point2)
+        px=point2.point.x
+        py=point2.point.y
+        pz=point2.point.z
+        print ("point in world: ", point2)
+        return True
 
 
 
