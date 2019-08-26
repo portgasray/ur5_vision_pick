@@ -82,14 +82,12 @@ class UR5_Pick_Up(object):
         self.group_names = group_names
         self.track_flag = False
         self.default_pose_flag = True
+        
         self.cx = 400.0
         self.cy = 400.0
-        self.cz = 620.0
-        #default position
-        self.x = 0.0
-        self.y = -0.5
-        self.z = 0.52
-        self.target_pose = Pose()
+        self.cz = 0.62
+
+        self.target_point = PointStamped()
         # self.bridge=cv_bridge.CvBridge()
         # self.image_sub=rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
         self.cxy_sub = rospy.Subscriber('camera_xy', Tracker, self.tracking_callback, queue_size=1)
@@ -115,12 +113,12 @@ class UR5_Pick_Up(object):
         # default_joint_states[4] = 1.6918
         # default_joint_states[5] = 0.0
 
-        default_joint_states[0] = 1.647 
-        default_joint_states[1] = -1.560
-        default_joint_states[2] = -1.450
-        default_joint_states[3] = -1.732
-        default_joint_states[4] = 1.613
-        default_joint_states[5] = 0.774
+        default_joint_states[0] = 1.6475
+        default_joint_states[1] = -1.5655
+        default_joint_states[2] = -1.4507
+        default_joint_states[3] = -1.7271
+        default_joint_states[4] = 1.6116
+        default_joint_states[5] = 0.7677
 
         # Set the internal state to the current state
         group.go(default_joint_states, wait=True)
@@ -140,18 +138,40 @@ class UR5_Pick_Up(object):
     
     def coordinate_convert(self):
         print "Start trans ... ... "
-        if self.tf_listener_.frameExists("base_link") and self.tf_listener_.frameExists("camera_link"):
-            t = self.tf_listener_.getLatestCommonTime("base_link", "camera_link")
-            p1 = geometry_msgs.msg.PoseStamped()
-            p1.header.frame_id = "camera_link"
-            p1.pose.orientation.w = 0.5    # Neutral orientation
-            p_in_base = self.tf_listener_.transformPose("base_link", p1)
-            self.target_pose.position.x = p_in_base.pose.position.x
-            self.target_pose.position.y = p_in_base.pose.position.y
-            self.target_pose.position.z = p_in_base.pose.position.z
-            # self.target_pose.orientation = Quaternion(*quaternion_from_euler(p_in_base.pose.orientation))
+        listener = self.tf_listener_
+        if listener.frameExists("base_link") and listener.frameExists("camera_link"):
+            # t = self.tf_listener_.getLatestCommonTime("base_link", "camera_link")
+            # p1 = geometry_msgs.msg.PoseStamped()
+            # p1.header.frame_id = "camera_link"
+            # p1.pose.orientation.w = 0.5    # Neutral orientation
+            # p_in_base = self.tf_listener_.transformPose("base_link", p1)
+
+            listener.waitForTransform("base_link", "camera_link", rospy.Time(0),rospy.Duration(4.0))
+            camera_point = PointStamped()
+            camera_point.header.frame_id = "camera_link"
+            camera_point.header.stamp = rospy.Time(0)
+
+            camera_point.point.x = self.cx / 1000 
+            camera_point.point.y = self.cy / 1000 
+            
+            ## camera original point
+            # camera_point.point.x = 0
+            # camera_point.point.y = 0.4
+            
+            camera_point.point.z = self.cz / 1000
+
+            print "coordinate in camera frame (%s, %s, %s)" %(camera_point.point.x, camera_point.point.y, camera_point.point.z)
+
+            self.target_point = listener.transformPoint("base_link", camera_point)
             print "Position of the camera_link in the robot base:"
-            print p_in_base
+            print self.target_point
+            # self.target_pose.position.x = p_in_base.pose.position.x
+            # self.target_pose.position.y = p_in_base.pose.position.y
+            # self.target_pose.position.z = p_in_base.pose.position.z
+            # # self.target_pose.orientation = Quaternion(*quaternion_from_euler(p_in_base.pose.orientation))
+            # print "coordinate in camera frame (%s, %s)" %(self.cx, self.cy)
+            # print "Position of the camera_link in the robot base:"
+            # print p_in_base
         # listener = self.tf_listener
         # # # listener = tf.TransformListener()
         # # rate = rospy.Rate(10.0)
@@ -182,10 +202,10 @@ class UR5_Pick_Up(object):
             print("Current pose: ", current_pose)
             pose_goal=geometry_msgs.msg.Pose()
 
-            pose_goal.orientation.x= 0.5
-            pose_goal.orientation.y= 0.5
-            pose_goal.orientation.z= -0.5
-            pose_goal.orientation.w= 0.5
+            pose_goal.orientation.x = 0.5
+            pose_goal.orientation.y = 0.5
+            pose_goal.orientation.z = -0.5
+            pose_goal.orientation.w = 0.5 #0.5
             ## get target goal position
 
             # pose_goal.orientation.x= 0.5
@@ -193,11 +213,11 @@ class UR5_Pick_Up(object):
             # pose_goal.orientation.z= -0.5
             # pose_goal.orientation.w= 0.5
             
-            print("target pose: " ,self.target_pose)
-
-            pose_goal.position.x =  self.target_pose.position.x #0
-            pose_goal.position.y =  self.target_pose.position.y #-0.5
-            pose_goal.position.z =  self.target_pose.position.z #0.44     
+            print("target point: " ,self.target_point)
+            pose_goal.position.x =  self.target_point.point.x #0
+            pose_goal.position.y =  self.target_point.point.y  #-0.5
+            # pose_goal.position.z =  self.target_point.point.z
+            pose_goal.position.z =  0.065  #0.44
 
             # pose_goal.position.x = 0.0 #0
             # pose_goal.position.y = -0.5 #-0.5
