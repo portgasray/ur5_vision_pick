@@ -51,8 +51,19 @@ class ur5_vision:
         x, y, w, h = cv2.boundingRect(cnts[paper_index])
         cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
 
-        pixels_permm_x = w/290
-        pixels_permm_y = h/202
+        # pixels_permm_x = float(w)/float(290)
+        # pixels_permm_y = float(h)/float(202)
+
+        # if w,h = 385,271 
+        # image center = 320,240
+        # pixels_permm_x and pixels_permm_y: (1.3275862069,1.34158415842)
+        # print("bouding box of paper: (%s,%s)" %(w, h))
+        # print("pixels_permm_x and pixels_permm_y: (%s,%s)" %(pixels_permm_x, pixels_permm_y))
+        # print("image center : (%s,%s)" %(img_center_x, img_center_y))
+
+        # using fixed pixel_x pixel_y 
+        pixels_permm_x = 1.3275
+        pixels_permm_y = 1.3415
 
         ## center of block
         block_cnt = cnts[block_index]
@@ -68,18 +79,17 @@ class ur5_vision:
         cv2.circle(image, (cX, cY), 3, (0,0,255), -1)
         cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-        # cX = 0
-        # cY = 0
+        # cX = 320
+        # cY = 240
 
         cX = (cX - img_center_x) / pixels_permm_x
         cY = (cY - img_center_y) / pixels_permm_y
 
-        # img_center_x 
-
         tracker.x = cX
         tracker.y = cY
 
-        print("world co-ordinates in the camera frame x: (%s,%s)" %(tracker.x, tracker.y))
+        
+        print("world co-ordinates in the camera frame x, y mm: (%s,%s)" %(tracker.x, tracker.y))
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image )
