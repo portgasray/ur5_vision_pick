@@ -152,11 +152,11 @@ class UR5_Pick_Up(object):
             camera_point.header.stamp = rospy.Time(0)
 
             camera_point.point.x = self.cx / 1000 
-            camera_point.point.y = self.cy / 1000 
+            camera_point.point.y = self.cy / 1000
             
             ## camera original point
             # camera_point.point.x = 0
-            # camera_point.point.y = 0.4
+            # camera_point.point.y = 0
             
             camera_point.point.z = self.cz / 1000
 
@@ -215,6 +215,8 @@ class UR5_Pick_Up(object):
             
             print("target point: " ,self.target_point)
             pose_goal.position.x =  self.target_point.point.x #0
+            ##compensate accuracy
+            pose_goal.position.x = pose_goal.position.x + 0.04
             pose_goal.position.y =  self.target_point.point.y  #-0.5
             # pose_goal.position.z =  self.target_point.point.z
             pose_goal.position.z =  0.065  #0.44
@@ -247,8 +249,11 @@ if __name__ == "__main__":
     print "============ Press `Enter` to go to pose goal and get the box"
     raw_input()
     ur5_pick_up.go_to_pose_goal()
-    print "============ Finished"
 
+    print "============ Press `Enter` to go ready pose"
+    raw_input()
+    ur5_pick_up.go_to_ready_pose()
+    print "============ Finished"
     # except rospy.ROSInterruptException:
     #     return
     # except KeyboardInterrupt:
