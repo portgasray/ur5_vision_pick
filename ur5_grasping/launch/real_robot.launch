@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- <arg name="limited" default="true"/>
+  <arg name="paused" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="debug" default="false" />
+  <arg name="sim" default="false" /> -->
+
+  <!-- Remap follow_joint_trajectory -->
+  <!-- Remap gripper_cmd -->
+
+  <!-- start the robot -->
+  <include file="$(find ur_modern_driver)/launch/ur5_bringup.launch" >
+    <arg name="limited" value="true" />
+    <arg name="robot_ip" value="169.254.6.80" />
+  </include> 
+
+  <!-- Launch moveit -->
+  <include file="$(find ur5_moveit_config)/launch/ur5_moveit_planning_execution.launch">
+    <arg name="limited" value="true" />
+  </include>
+
+  <!-- launch rviz -->
+  <include file="$(find ur5_moveit_config)/launch/moveit_rviz.launch">
+  </include>
+
+  <!-- start realsense camera -->
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch" />
+
+  <!-- eye on base -->
+  <!-- x, y, z, qx, qy, qz, qw -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot"  args="-0.05189551828599585 -0.6010611113073032 0.4999040373742261 -0.5179965721549077 -0.4879882756697124 0.49836398236764884 0.49515687930526026 base_link camera_link 100"/> -->
+  <!-- eye on hand -->
+  <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot"  args="-0.06035500965140117 -0.05217139677036417 0.006296820928105715 0.26723687298495286 -0.6564037503681849 0.2681349122013846 0.6525505643845247 tool0 camera_link 100"/>
+  <!-- Rotate X, Y Z axis -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="camera_link_"  args="0 0 0 -1.5707963268 0 -1.5707963268 camera_link2 camera_link 100"/> -->
+  
+<!-- start ur5 motion planning -->
+
+<!-- the cylinder poses publisher node -->
+<!--
+<node name="ur5_vision" pkg="ur5_notebook" type="ur5_vision.py" output="screen" />
+<node name="ur5_mp" pkg="ur5_notebook" type="ur5_mp.py" output="screen" />
+<node name="ur5_gripper" pkg="ur5_notebook" type="ur5_gripper.py" output="screen"/> 
+-->
+
+</launch>
