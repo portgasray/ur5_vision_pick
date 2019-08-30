@@ -14,6 +14,19 @@ from std_msgs.msg import Header
 from trajectory_msgs.msg import JointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 tracker = Tracker()
+
+def nothing(x):
+    pass
+
+# cv2.namedWindow("Trackbars")
+
+# cv2.createTrackbar("L - H", "Trackbars", 0, 179, nothing)
+# cv2.createTrackbar("L - S", "Trackbars", 0, 255, nothing)
+# cv2.createTrackbar("L - V", "Trackbars", 0, 255, nothing)
+# cv2.createTrackbar("U - H", "Trackbars", 255, 255, nothing)
+# cv2.createTrackbar("U - S", "Trackbars", 255, 255, nothing)
+# cv2.createTrackbar("U - V", "Trackbars", 255, 255, nothing)
+
 class ur5_vision:
     def __init__(self):
         rospy.init_node("ur5_vision", anonymous=False)
@@ -25,76 +38,86 @@ class ur5_vision:
         self.image_sub = rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
         self.cxy_pub = rospy.Publisher('camera_xy', Tracker, queue_size=1)
 
-
     def image_callback(self,msg):
+        # cv2.namedWindow("Trackbars")
+
+        # cv2.createTrackbar("L - H", "Trackbars", 0, 179, nothing)
+        # cv2.createTrackbar("L - S", "Trackbars", 0, 255, nothing)
+        # cv2.createTrackbar("L - V", "Trackbars", 0, 255, nothing)
+        # cv2.createTrackbar("U - H", "Trackbars", 255, 255, nothing)
+        # cv2.createTrackbar("U - S", "Trackbars", 255, 255, nothing)
+        # cv2.createTrackbar("U - V", "Trackbars", 255, 255, nothing)
+
+        # l_h = cv2.getTrackbarPos("L - H", "Trackbars")
+        # l_s = cv2.getTrackbarPos("L - S", "Trackbars")
+        # l_v = cv2.getTrackbarPos("L - V", "Trackbars")
+        # u_h = cv2.getTrackbarPos("U - H", "Trackbars")
+        # u_s = cv2.getTrackbarPos("U - S", "Trackbars")
+        # u_v = cv2.getTrackbarPos("U - V", "Trackbars")
+
         # BEGIN BRIDGE
         image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8')
+        
         # END BRIDGE
         h, w, d = image.shape
         img_center_x = w/2
         img_center_y = h/2
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        # black color
-        black = 97
-        sensitivity = 15
-        lower_black = np.array([black - sensitivity, 189, 0])
-        upper_black = np.array([black + sensitivity,255,255])
-        a4_paper =  cv2.inRange(hsv, lower_black, upper_black)
+        # yellow color
+        lower_yellow = np.array([0, 0, 0])
+        upper_yellow = np.array([255,255,200])
 
-        _, contours, hierarchy = cv2.findContours(a4_paper.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        # lower_yellow = np.array([l_h, l_s, l_v])
+        # upper_yellow = np.array([u_h, u_s, u_v])
+        
+        wooden_block =  cv2.inRange(hsv, lower_yellow, upper_yellow)
+        
+        #show result
+        # result = cv2.bitwise_and(image, image, mask = wooden_block)
+
+        _, contours, hierarchy = cv2.findContours(wooden_block.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         cnts = [ c for c in contours if cv2.contourArea(c) > 1000 and cv2.contourArea(c) < h * w * 0.9 ]
 
-        paper_index = 0
-        block_index = 1
+        cX = 0
+        cY = 0
+        for cnt in cnts:
+            # bounding box
+            # x, y, w, h = cv2.boundingRect(cnt)
+            # cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
 
-        x, y, w, h = cv2.boundingRect(cnts[paper_index])
-        cv2.rectangle(image,(x,y), (x+w,y+h), (0,0,255), 3)
-
-        # pixels_permm_x = float(w)/float(290)
-        # pixels_permm_y = float(h)/float(202)
-
-        # if w,h = 385,271 
-        # image center = 320,240
-        # pixels_permm_x and pixels_permm_y: (1.3275862069,1.34158415842)
-        # print("bouding box of paper: (%s,%s)" %(w, h))
-        # print("pixels_permm_x and pixels_permm_y: (%s,%s)" %(pixels_permm_x, pixels_permm_y))
-        # print("image center : (%s,%s)" %(img_center_x, img_center_y))
+            ## center of contour
+            M = cv2.moments(cnt)
+            # M = cv2.moments(thresh)
+            # calculate x, y coordinate of center
+            if M["m00"] != 0:
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+            
+            # drawing contour
+            cv2.drawContours(image, [cnt], 0, (0,255,0), 2)
+            cv2.circle(image, (cX, cY), 3, (0,0,255), -1)
+            cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
         # using fixed pixel_x pixel_y 
         pixels_permm_x = 1.3275
         pixels_permm_y = 1.3415
-
-        ## center of block
-        block_cnt = cnts[block_index]
-        M = cv2.moments(block_cnt)
-        # M = cv2.moments(thresh)
-        # calculate x, y coordinate of center
-        if M["m00"] != 0:
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-
-        # drawing contour
-        cv2.drawContours(image, [block_cnt], 0, (0,255,0), 2)
-        cv2.circle(image, (cX, cY), 3, (0,0,255), -1)
-        cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-
-        # cX = 320
-        # cY = 240
-
-        cX = (cX - img_center_x) / pixels_permm_x
-        cY = (cY - img_center_y) / pixels_permm_y
+       
+        if cX != 0 and cY != 0:
+            cX = (cX - img_center_x) / pixels_permm_x
+            cY = (cY - img_center_y) / pixels_permm_y
 
         tracker.x = cX
         tracker.y = cY
 
-        
         print("world co-ordinates in the camera frame x, y mm: (%s,%s)" %(tracker.x, tracker.y))
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
-        cv2.imshow("window", image )
+        cv2.imshow("window", image)
+        cv2.imshow("wooden mask", wooden_block)
+        # cv2.imshow("result", result)
         cv2.waitKey(1)
 
 if __name__ == "__main__":
-    follower=ur5_vision()
+    follower = ur5_vision()
     rospy.spin()
