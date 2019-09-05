@@ -15,6 +15,8 @@ from trajectory_msgs.msg import JointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 from time import sleep
 
+from gripper import GripperClient
+
 
 def all_close(goal, actual, tolerance):
     """
@@ -113,12 +115,12 @@ class UR5_Pick_Up(object):
         # default_joint_states[4] = 1.6918
         # default_joint_states[5] = 0.0
 
-        default_joint_states[0] = 1.6475
-        default_joint_states[1] = -1.5655
-        default_joint_states[2] = -1.4507
-        default_joint_states[3] = -1.7271
-        default_joint_states[4] = 1.6116
-        default_joint_states[5] = 0.7677
+        default_joint_states[0] = 1.6497
+        default_joint_states[1] = -1.5534
+        default_joint_states[2] = -1.4492
+        default_joint_states[3] = -1.7472
+        default_joint_states[4] = 1.6474
+        default_joint_states[5] = 0.7089
 
         # Set the internal state to the current state
         group.go(default_joint_states, wait=True)
@@ -139,16 +141,19 @@ class UR5_Pick_Up(object):
     def coordinate_convert(self):
         print "Start trans ... ... "
         listener = self.tf_listener_
-        if listener.frameExists("base_link") and listener.frameExists("camera_link"):
+        # if listener.frameExists("base_link") and listener.frameExists("camera_link"):
+        if listener.frameExists("base_link") and listener.frameExists("camera_color_optical_frame"):
             # t = self.tf_listener_.getLatestCommonTime("base_link", "camera_link")
             # p1 = geometry_msgs.msg.PoseStamped()
             # p1.header.frame_id = "camera_link"
             # p1.pose.orientation.w = 0.5    # Neutral orientation
             # p_in_base = self.tf_listener_.transformPose("base_link", p1)
 
-            listener.waitForTransform("base_link", "camera_link", rospy.Time(0),rospy.Duration(4.0))
+            # listener.waitForTransform("base_link", "camera_link", rospy.Time(0),rospy.Duration(4.0))
+            listener.waitForTransform("base_link", "camera_color_optical_frame", rospy.Time(0),rospy.Duration(4.0))
             camera_point = PointStamped()
-            camera_point.header.frame_id = "camera_link"
+            # camera_point.header.frame_id = "camera_link"
+            camera_point.header.frame_id = "camera_color_optical_frame"
             camera_point.header.stamp = rospy.Time(0)
 
             camera_point.point.x = self.cx / 1000 
@@ -205,26 +210,21 @@ class UR5_Pick_Up(object):
             pose_goal.orientation.x = 0.5
             pose_goal.orientation.y = 0.5
             pose_goal.orientation.z = -0.5
-            pose_goal.orientation.w = 0.5 #0.5
-            ## get target goal position
-
-            # pose_goal.orientation.x= 0.5
-            # pose_goal.orientation.y= 0.5
-            # pose_goal.orientation.z= -0.5
-            # pose_goal.orientation.w= 0.5
+            pose_goal.orientation.w = 0.5
             
             print("target point: " ,self.target_point)
             pose_goal.position.x =  self.target_point.point.x #0
-            ##compensate accuracy
-            pose_goal.position.x = pose_goal.position.x + 0.04
             pose_goal.position.y =  self.target_point.point.y  #-0.5
+            ##compensate accuracy
+            pose_goal.position.x = pose_goal.position.x + 0.0369
+            pose_goal.position.y = pose_goal.position.y + 0.0122
             # pose_goal.position.z =  self.target_point.point.z
-            pose_goal.position.z =  0.065  #0.44
+            pose_goal.position.z =  0.058
 
             # pose_goal.position.x = 0.0 #0
             # pose_goal.position.y = -0.5 #-0.5
-            # pose_goal.position.z = 0.062 #0.44    
-            # pose_goal = self.target_pose
+            # pose_goal.position.z = 0.062 #0.44
+
             group.set_pose_target(pose_goal)
             plan = group.go(wait=True)
             group.stop()
@@ -232,27 +232,55 @@ class UR5_Pick_Up(object):
             current_pose=group.get_current_pose().pose
             print("New current pose: ", current_pose)
             return all_close(pose_goal, current_pose, 0.01)
-ur5_pick_up = UR5_Pick_Up()
+
+    def place_block(self):
+            group = self.group
+            pose_goal=geometry_msgs.msg.Pose()
+
+            pose_goal.orientation.x = 0.5
+            pose_goal.orientation.y = 0.5
+            pose_goal.orientation.z = -0.5
+            pose_goal.orientation.w = 0.5
+        
+            pose_goal.position.x =  -0.35
+            pose_goal.position.y =  -0.68
+            pose_goal.position.z =  0.055
+            group.set_pose_target(pose_goal)
+            plan = group.go(wait=True)
+            group.stop()
+            group.clear_pose_targets()
+            current_pose=group.get_current_pose().pose
+            print("New current pose: ", current_pose)
+            return all_close(pose_goal, current_pose, 0.01)
+         
 
 if __name__ == "__main__":
-      
+    ur5_pick_up = UR5_Pick_Up()
+    gripper = GripperClient()
     # image_sub = rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
     # try:
     print "============ Press `Enter` to go to ready pose"
-    raw_input()
+    # raw_input()
     ur5_pick_up.go_to_ready_pose()
     
-    print "============ Press `Enter` to go to convert coordinate"
-    raw_input()
     ur5_pick_up.coordinate_convert()
-
-    print "============ Press `Enter` to go to pose goal and get the box"
-    raw_input()
+    print "============ Press `Enter` to go to pose goal and get the block"
+    # raw_input()
     ur5_pick_up.go_to_pose_goal()
+    ##pick up
+    # gripper.open()
+
+    print "============ Press `Enter` to place the block"
+    # raw_input()
+    ur5_pick_up.go_to_ready_pose()
+    #place
+    ur5_pick_up.place_block()
+    # gripper.close()
 
     print "============ Press `Enter` to go ready pose"
-    raw_input()
+    # raw_input()
     ur5_pick_up.go_to_ready_pose()
+    
     print "============ Finished"
     # except rospy.ROSInterruptException:
     #     return
