@@ -31,7 +31,9 @@
   <!-- x, y, z, qx, qy, qz, qw -->
   <!-- <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot"  args="-0.05189551828599585 -0.6010611113073032 0.4999040373742261 -0.5179965721549077 -0.4879882756697124 0.49836398236764884 0.49515687930526026 base_link camera_link 100"/> -->
   <!-- eye on hand -->
-  <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot"  args="-0.06035500965140117 -0.05217139677036417 0.006296820928105715 0.26723687298495286 -0.6564037503681849 0.2681349122013846 0.6525505643845247 tool0 camera_link 100"/>
+  <!-- <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot"  args="-0.06035500965140117 -0.05217139677036417 0.006296820928105715 0.26723687298495286 -0.6564037503681849 0.2681349122013846 0.6525505643845247 tool0 camera_link 100"/> -->
+  <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot"  args="-0.05420541503346186 -0.05570669831056157 0.058262730013905084 0.3460241824109299 -0.6326418447064783 0.32232124948492014 0.6133030031262782 tool0 camera_link 100"/>
+
   <!-- Rotate X, Y Z axis -->
   <!-- <node pkg="tf" type="static_transform_publisher" name="camera_link_"  args="0 0 0 -1.5707963268 0 -1.5707963268 camera_link2 camera_link 100"/> -->
   
