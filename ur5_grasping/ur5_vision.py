@@ -8,7 +8,9 @@ from ur5_grasping.msg import Tracker
 import moveit_msgs.msg
 import cv2, cv_bridge
 from sensor_msgs.msg import Image
+# from sensor_msgs.msg import Image as msg_Image
 
+import pyrealsense2 as rs
 
 from std_msgs.msg import Header
 from trajectory_msgs.msg import JointTrajectory
@@ -27,18 +29,45 @@ def nothing(x):
 # cv2.createTrackbar("U - S", "Trackbars", 255, 255, nothing)
 # cv2.createTrackbar("U - V", "Trackbars", 255, 255, nothing)
 
+# def initialize_camera():
+#     #start the frames pipe
+#     p = rs.pipeline()
+#     conf = rs.config()
+#     CAM_WIDTH, CAM_HEIGHT, CAM_FPS = 640,480,30
+#     conf.enable_stream(rs.stream.depth, CAM_WIDTH, CAM_HEIGHT, rs.format.z16, CAM_FPS)
+#     conf.enable_stream(rs.stream.color, CAM_WIDTH, CAM_HEIGHT, rs.format.rgb8, CAM_FPS)
+#     # conf.enable_stream(rs.stream.infrared,1, CAM_WIDTH, CAM_HEIGHT, rs.format.y8, CAM_FPS)
+#     # conf.enable_stream(rs.stream.accel,rs.format.motion_xyz32f,250)
+#     # conf.enable_stream(rs.stream.gyro,rs.format.motion_xyz32f,200)
+#     prof = p.start(conf)
+#     return p
+
 class ur5_vision:
-    def __init__(self):
+    def __init__(self, topic):
         rospy.init_node("ur5_vision", anonymous=False)
         self.track_flag = False
         self.default_pose_flag = True
         self.cx = 400.0
         self.cy = 400.0
         self.bridge = cv_bridge.CvBridge()
+        self.sub = rospy.Subscriber(topic, Image, self.imageDepthCallback)
         self.image_sub = rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
         self.cxy_pub = rospy.Publisher('camera_xy', Tracker, queue_size=1)
 
-    def image_callback(self,msg):
+        self.topic = topic
+        # self.bridge = CvBridge()
+
+    def imageDepthCallback(self, data):
+        try:
+            cv_image = self.bridge.imgmsg_to_cv2(data, data.encoding)
+            pix = (data.width/2, data.height/2)
+            print('%s: Depth at center(%d, %d): %f(mm)\r' % (self.topic, pix[0], pix[1], cv_image[pix[1], pix[0]]))
+            sys.stdout.flush()
+        except CvBridgeError as e:
+            print(e)
+            return
+
+    def image_callback(self, msg):
         # cv2.namedWindow("Trackbars")
 
         # cv2.createTrackbar("L - H", "Trackbars", 0, 179, nothing)
@@ -60,8 +89,10 @@ class ur5_vision:
         
         # END BRIDGE
         h, w, d = image.shape
-        img_center_x = w/2
-        img_center_y = h/2
+        # img_center_x = w/2
+        # img_center_y = h/2
+        img_center_x = 314.05
+        img_center_y = 248.70
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         # yellow color
@@ -102,15 +133,20 @@ class ur5_vision:
         # using fixed pixel_x pixel_y 
         pixels_permm_x = 1.3275
         pixels_permm_y = 1.3415
-       
+
+        # pipe = initialize_camera()
+        # dpt_frame = pipe.wait_for_frames().get_depth_frame().as_depth_frame()
+        
+        
         if cX != 0 and cY != 0:
-            cX = (cX - img_center_x) / pixels_permm_x
-            cY = (cY - img_center_y) / pixels_permm_y
+            pixel_x_in_meter =  (cX - img_center_x) / pixels_permm_x
+            pixel_y_in_meter = (cY - img_center_y) / pixels_permm_y
 
-        tracker.x = cX
-        tracker.y = cY
+        tracker.x = pixel_x_in_meter
+        tracker.y = pixel_y_in_meter
+        # tracker.z = pixel_z_in_meter
 
-        print("world co-ordinates in the camera frame x, y mm: (%s,%s)" %(tracker.x, tracker.y))
+        print("world co-ordinates in the camera frame x, y z mm: (%s,%s)" %(tracker.x, tracker.y))
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image)
@@ -119,5 +155,6 @@ class ur5_vision:
         cv2.waitKey(1)
 
 if __name__ == "__main__":
-    follower = ur5_vision()
+    topic = '/camera/depth/image_rect_raw'
+    listener = ur5_vision(topic)
     rospy.spin()
