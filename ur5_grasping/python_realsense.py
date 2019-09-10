@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import pyrealsense2 as rs
 import numpy as np
 import cv2
@@ -49,31 +51,6 @@ def initialize_camera():
     # return p, align
     return p
 
-def convert_depth_pixel_to_metric_coordinate(depth, pixel_x, pixel_y, camera_intrinsics):
-	"""
-	Convert the depth and image point information to metric coordinates
-	Parameters:
-	-----------
-	depth 	 	 	 : double
-						   The depth value of the image point
-	pixel_x 	  	 	 : double
-						   The x value of the image coordinate
-	pixel_y 	  	 	 : double
-							The y value of the image coordinate
-	camera_intrinsics : The intrinsic values of the imager in whose coordinate system the depth_frame is computed
-	Return:
-	----------
-	X : double
-		The x value in meters
-	Y : double
-		The y value in meters
-	Z : double
-		The z value in meters
-	"""
-	X = (pixel_x - camera_intrinsics.ppx)/camera_intrinsics.fx *depth
-	Y = (pixel_y - camera_intrinsics.ppy)/camera_intrinsics.fy *depth
-	return X, Y, depth
-
 def find_block_contour(image, lower_color, upper_color):
     h, w, d = image.shape
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -84,7 +61,7 @@ def find_block_contour(image, lower_color, upper_color):
     # wooden_block =  cv2.inRange(image, lower_yellow, upper_yellow)
     wooden_block =  cv2.inRange(image, lower_color, upper_color)
     _, contours, hierarchy = cv2.findContours(wooden_block.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = [ c for c in contours if cv2.contourArea(c) > 1000 and cv2.contourArea(c) < h * w * 0.9 ]
+    cnts = [ c for c in contours if cv2.contourArea(c) > 1000 and cv2.contourArea(c) < h * w * 0.8 ]
     return cnts
 
 def find_block_center(contour):
@@ -95,22 +72,25 @@ def find_block_center(contour):
         cY = int(M["m01"] / M["m00"])
     return cX, cY
 
+def publish_msg(puber, msg, item_1, item_2, item_3):
+    msg.x = item_1
+    msg.y = item_2
+    msg.z = item_3
+    puber.publish(msg)
+    print("camera coordinate of x, y, z: (%.3f, %.3f, %.3f)" %(msg.x, msg.y, msg.z))
+
 if __name__ == "__main__":
-
+    rospy.init_node('object_detection')
     tracker = Tracker()
-    
-    ### create color trackbar for extracting hsv value
+    ## create color trackbar for extracting hsv value
     create_clr_trackbar(nothing)
-
-    rospy.init_node("detection", anonymous=False)
-    position_block = rospy.Publisher('position_in_camera',Tracker, queue_size=1)
+    position_block = rospy.Publisher('position_in_camera', Tracker, queue_size=1)
     try:
         pipeline = initialize_camera()
         align_to = rs.stream.color
         align = rs.align(align_to)
 
         while True:
-            
             frames = pipeline.wait_for_frames()
             ### not aligned
             # color_frame = frames.get_color_frame()
@@ -132,10 +112,10 @@ if __name__ == "__main__":
             depth_intrin = aligned_depth_frame.profile.as_video_stream_profile().intrinsics
 
             image = color_image
-            # lower_color, upper_color = get_clr_trackbar()
+            lower_color, upper_color = get_clr_trackbar()
             #wooden block color fixed
-            lower_color = np.array([0, 0, 0])
-            upper_color = np.array([255,255,129])
+            # lower_color = np.array([0, 0, 0])
+            # upper_color = np.array([255,255,129])
             result =  cv2.inRange(image, lower_color, upper_color)
 
             contours = find_block_contour(image.copy(), lower_color, upper_color)
@@ -152,19 +132,17 @@ if __name__ == "__main__":
                     # print("pixel of x, y: (%s,%s)" %(cX, cY))
 
                     depth_point_in_meters_camera_coords = rs.rs2_deproject_pixel_to_point(depth_intrin, [cX, cY], depth)
-                    print("camera coordinate of x, y, z: (%.3f, %.3f, %.3f)" %(depth_point_in_meters_camera_coords[0], 
-                        depth_point_in_meters_camera_coords[1], depth_point_in_meters_camera_coords[2]))
+                    # print("camera coordinate of x, y, z: (%.3f, %.3f, %.3f)" %(depth_point_in_meters_camera_coords[0], 
+                    #     depth_point_in_meters_camera_coords[1], depth_point_in_meters_camera_coords[2]))
 
-                    tracker.x = depth_point_in_meters_camera_coords[0]
-                    tracker.y = depth_point_in_meters_camera_coords[1]
-                    tracker.z = depth_point_in_meters_camera_coords[2]
-                    position_block.publish(tracker)
+                    publish_msg(position_block, tracker, depth_point_in_meters_camera_coords[0], depth_point_in_meters_camera_coords[1], depth_point_in_meters_camera_coords[2])
+                   
 
             cv2.namedWindow("window", 1)
             cv2.imshow("window", image)
             cv2.imshow("wooden mask", result)
             cv2.waitKey(1)
-            rospy.spin()
+
     except Exception as e:
         print(e)
         pass
@@ -172,3 +150,4 @@ if __name__ == "__main__":
     finally:
         # Stop streaming
         pipeline.stop()
+    # rospy.spin()
