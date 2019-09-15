@@ -137,7 +137,6 @@ if __name__ == "__main__":
 
                     publish_msg(position_block, tracker, depth_point_in_meters_camera_coords[0], depth_point_in_meters_camera_coords[1], depth_point_in_meters_camera_coords[2])
                    
-
             cv2.namedWindow("window", 1)
             cv2.imshow("window", image)
             cv2.imshow("wooden mask", result)

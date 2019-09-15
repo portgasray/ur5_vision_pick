@@ -24,8 +24,12 @@
   <include file="$(find ur5_moveit_config)/launch/moveit_rviz.launch">
   </include>
 
-  <!-- start realsense camera -->
-  <include file="$(find realsense2_camera)/launch/rs_camera.launch" />
+  <!-- start realsense camera color frame-->
+  <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch"/> -->
+  
+
+  <!-- start realsense camera depth frame -->
+  <!-- <include file="$(find realsense2_camera)/launch/rs_aligned_depth.launch"/> -->
 
   <!-- eye on base -->
   <!-- x, y, z, qx, qy, qz, qw -->

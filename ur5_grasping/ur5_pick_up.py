@@ -39,6 +39,7 @@ def all_close(goal, actual, tolerance):
         return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
     return True
 
+
 class UR5_Pick_Up(object):
     def __init__(self):
         super(UR5_Pick_Up, self).__init__()
@@ -85,16 +86,17 @@ class UR5_Pick_Up(object):
         self.track_flag = False
         self.default_pose_flag = True
         
-        self.cx = 400.0
-        self.cy = 400.0
-        self.cz = 0.62
+        self.cx = 0
+        self.cy = 0
+        self.cz = 0
 
         self.target_point = PointStamped()
         # self.bridge=cv_bridge.CvBridge()
         # self.image_sub=rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
-        self.cxy_sub = rospy.Subscriber('camera_xy', Tracker, self.tracking_callback, queue_size=1)
-        self.state_change_time = rospy.Time.now()
-
+        # self.cxy_sub = rospy.Subscriber('camera_xy', Tracker, self.tracking_callback, queue_size=1)
+        # self.cxyz_sub = rospy.Subscriber('camera_xyz',Tracker, self.tracking_callback, queue_size=1)
+        
+        self.cxyz_sub = rospy.Subscriber('position_in_camera', Tracker, self.tracking_callback, queue_size=1)
         self.tf_listener_ = tf.TransformListener()
         rate = rospy.Rate(10)
 
@@ -133,16 +135,17 @@ class UR5_Pick_Up(object):
 
 
     def tracking_callback(self, msg):
+        # msg here is 'tracker' from *vision.py
         track_flag = msg.flag1
         self.cx = msg.x
         self.cy = msg.y
-        # print ("receive coordinates in the camera frame x, y: (%s,%s)" %(self.cx, self.cy))
+        self.cz = msg.z
+        # print ("receive coordinates from topic: (%s,%s,%s)" %(self.cx, self.cy, self.cz))
     
     def coordinate_convert(self):
         print "Start trans ... ... "
         listener = self.tf_listener_
-        # if listener.frameExists("base_link") and listener.frameExists("camera_link"):
-        if listener.frameExists("base_link") and listener.frameExists("camera_color_optical_frame"):
+        if listener.frameExists("base_link") and listener.frameExists("camera_depth_optical_frame"):  #camera_depth_optical_frame
             # t = self.tf_listener_.getLatestCommonTime("base_link", "camera_link")
             # p1 = geometry_msgs.msg.PoseStamped()
             # p1.header.frame_id = "camera_link"
@@ -150,56 +153,18 @@ class UR5_Pick_Up(object):
             # p_in_base = self.tf_listener_.transformPose("base_link", p1)
 
             # listener.waitForTransform("base_link", "camera_link", rospy.Time(0),rospy.Duration(4.0))
-            listener.waitForTransform("base_link", "camera_color_optical_frame", rospy.Time(0),rospy.Duration(4.0))
+            listener.waitForTransform("base_link", "camera_depth_optical_frame", rospy.Time(0),rospy.Duration(4.0))  
             camera_point = PointStamped()
-            # camera_point.header.frame_id = "camera_link"
-            camera_point.header.frame_id = "camera_color_optical_frame"
+            camera_point.header.frame_id = "camera_depth_optical_frame"
             camera_point.header.stamp = rospy.Time(0)
-
-            camera_point.point.x = self.cx / 1000 
-            camera_point.point.y = self.cy / 1000
-            
-            ## camera original point
-            # camera_point.point.x = 0
-            # camera_point.point.y = 0
-            
+            camera_point.point.x = self.cx
+            camera_point.point.y = self.cy
             camera_point.point.z = self.cz / 1000
-
             print "coordinate in camera frame (%s, %s, %s)" %(camera_point.point.x, camera_point.point.y, camera_point.point.z)
-
             self.target_point = listener.transformPoint("base_link", camera_point)
-            print "Position of the camera_link in the robot base:"
+            print "position in the robot base:"
             print self.target_point
-            # self.target_pose.position.x = p_in_base.pose.position.x
-            # self.target_pose.position.y = p_in_base.pose.position.y
-            # self.target_pose.position.z = p_in_base.pose.position.z
-            # # self.target_pose.orientation = Quaternion(*quaternion_from_euler(p_in_base.pose.orientation))
-            # print "coordinate in camera frame (%s, %s)" %(self.cx, self.cy)
-            # print "Position of the camera_link in the robot base:"
-            # print p_in_base
-        # listener = self.tf_listener
-        # # # listener = tf.TransformListener()
-        # # rate = rospy.Rate(10.0)
-        # # while not rospy.is_shutdown():
-        # #     try:
-        # #         (trans,rot) = listener.lookupTransform('base_link', 'camera_link', rospy.Time(0))
-        # #     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-        # #         continue
-        # # print("item_trans:", str(trans))
-        # # self.scene.addCube("item", 0.05, trans[0], trans[1], trans[2])
-        # point1=geometry_msgs.msg.PointStamped()
-        # # point1.header.stamp
-        # point1.header.frame_id="camera_link"
-        # point1.point.x= self.cx
-        # point1.point.y= self.cy
-        # point1.point.z= 0.062
-        # point2=geometry_msgs.msg.PointStamped()
-        # listener.TransformerROS.transformpoint("base_link", point1, point2)
-        # px=point2.point.x
-        # py=point2.point.y
-        # pz=point2.point.z
-        # print ("point in world: ", point2)
-        # return True
+
 
     def go_to_pose_goal(self):
             group = self.group
@@ -212,19 +177,14 @@ class UR5_Pick_Up(object):
             pose_goal.orientation.z = -0.5
             pose_goal.orientation.w = 0.5
             
-            print("target point: " ,self.target_point)
+            # print("target point: " ,self.target_point)
             pose_goal.position.x =  self.target_point.point.x #0
             pose_goal.position.y =  self.target_point.point.y  #-0.5
+            pose_goal.position.z =  self.target_point.point.z
             ##compensate accuracy
             pose_goal.position.x = pose_goal.position.x + 0.0369
             pose_goal.position.y = pose_goal.position.y + 0.0122
-            # pose_goal.position.z =  self.target_point.point.z
-            pose_goal.position.z =  0.058
-
-            # pose_goal.position.x = 0.0 #0
-            # pose_goal.position.y = -0.5 #-0.5
-            # pose_goal.position.z = 0.062 #0.44
-
+            # pose_goal.position.z =  0.058
             group.set_pose_target(pose_goal)
             plan = group.go(wait=True)
             group.stop()
@@ -260,25 +220,25 @@ if __name__ == "__main__":
     # image_sub = rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
     # try:
     print "============ Press `Enter` to go to ready pose"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     
     ur5_pick_up.coordinate_convert()
     print "============ Press `Enter` to go to pose goal and get the block"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_pose_goal()
     ##pick up
     # gripper.open()
 
     print "============ Press `Enter` to place the block"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     #place
     ur5_pick_up.place_block()
     # gripper.close()
 
     print "============ Press `Enter` to go ready pose"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     
     print "============ Finished"
