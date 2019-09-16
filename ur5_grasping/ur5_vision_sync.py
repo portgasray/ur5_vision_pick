@@ -54,9 +54,9 @@ class ur5_vision:
         self.bridge = cv_bridge.CvBridge()
         self.depth_topic = depth_topic
         self.color_topic = color_topic
-        self.depth_sub = message_filters.Subscriber(depth_topic, Image)
-        self.color_sub = message_filters.Subscriber(color_topic, Image) 
-        self.sync = message_filters.TimeSynchronizer([self.depth_sub, self.color_sub], 1)
+        self.depth_sub = message_filters.Subscriber(self.depth_topic, Image)
+        self.color_sub = message_filters.Subscriber(self.color_topic, Image) 
+        self.sync = message_filters.ApproximateTimeSynchronizer([self.depth_sub, self.color_sub], queue_size = 5, slop = 0.1)
         self.sync.registerCallback(self.image_callback)
 
         self.cxy_pub = rospy.Publisher('camera_xy', Tracker, queue_size=1)
