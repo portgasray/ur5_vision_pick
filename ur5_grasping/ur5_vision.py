@@ -20,27 +20,6 @@ tracker = Tracker()
 def nothing(x):
     pass
 
-# cv2.namedWindow("Trackbars")
-
-# cv2.createTrackbar("L - H", "Trackbars", 0, 179, nothing)
-# cv2.createTrackbar("L - S", "Trackbars", 0, 255, nothing)
-# cv2.createTrackbar("L - V", "Trackbars", 0, 255, nothing)
-# cv2.createTrackbar("U - H", "Trackbars", 255, 255, nothing)
-# cv2.createTrackbar("U - S", "Trackbars", 255, 255, nothing)
-# cv2.createTrackbar("U - V", "Trackbars", 255, 255, nothing)
-
-# def initialize_camera():
-#     #start the frames pipe
-#     p = rs.pipeline()
-#     conf = rs.config()
-#     CAM_WIDTH, CAM_HEIGHT, CAM_FPS = 640,480,30
-#     conf.enable_stream(rs.stream.depth, CAM_WIDTH, CAM_HEIGHT, rs.format.z16, CAM_FPS)
-#     conf.enable_stream(rs.stream.color, CAM_WIDTH, CAM_HEIGHT, rs.format.rgb8, CAM_FPS)
-#     # conf.enable_stream(rs.stream.infrared,1, CAM_WIDTH, CAM_HEIGHT, rs.format.y8, CAM_FPS)
-#     # conf.enable_stream(rs.stream.accel,rs.format.motion_xyz32f,250)
-#     # conf.enable_stream(rs.stream.gyro,rs.format.motion_xyz32f,200)
-#     prof = p.start(conf)
-#     return p
 
 class ur5_vision:
     def __init__(self, topic):
