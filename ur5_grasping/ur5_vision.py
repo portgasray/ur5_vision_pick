@@ -7,7 +7,11 @@ import geometry_msgs.msg
 from ur5_grasping.msg import Tracker
 import moveit_msgs.msg
 import cv2, cv_bridge
+from cv_bridge import CvBridgeError
 from sensor_msgs.msg import Image
+from sensor_msgs.msg import CameraInfo
+import message_filters
+import image_geometry
 # from sensor_msgs.msg import Image as msg_Image
 
 import pyrealsense2 as rs
@@ -17,61 +21,50 @@ from trajectory_msgs.msg import JointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 tracker = Tracker()
 
-def nothing(x):
-    pass
-
-
 class ur5_vision:
-    def __init__(self, topic):
+    def __init__(self, depth_topic, color_topic, info_tpoic):
         rospy.init_node("ur5_vision", anonymous=False)
         self.track_flag = False
         self.default_pose_flag = True
-        self.cx = 400.0
-        self.cy = 400.0
+        # self.cX = 400.0
+        # self.cY = 400.0
         self.bridge = cv_bridge.CvBridge()
-        self.sub = rospy.Subscriber(topic, Image, self.imageDepthCallback)
-        self.image_sub = rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
-        self.cxy_pub = rospy.Publisher('camera_xy', Tracker, queue_size=1)
+        self.depth_topic = depth_topic
+        self.color_topic = color_topic
+        self.info_topic = info_topic
+        self.depth_sub = message_filters.Subscriber(self.depth_topic, Image)
+        self.color_sub = message_filters.Subscriber(self.color_topic, Image) 
+        self.info_sub = message_filters.Subscriber(self.info_topic, CameraInfo)
+        self.sync = message_filters.ApproximateTimeSynchronizer([self.depth_sub, self.color_sub, self.info_sub], queue_size = 5, slop = 0.1)
+        self.sync.registerCallback(self.image_callback)
 
-        self.topic = topic
+        self.cxyz_pub = rospy.Publisher('camera_xyz', Tracker, queue_size=1)
+        # self.topic = topic
         # self.bridge = CvBridge()
+    
+    def image_callback(self, depth_msg, color_msg, info_msg):
 
-    def imageDepthCallback(self, data):
+        # UNPACK THE CAMEARA INFO
+        cam = image_geometry.PinholeCameraModel()
+        cam.fromCameraInfo(info_msg)
+        # distort = info_msg.distortion_model
+        
+        # BEGIN BRIDGE
         try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, data.encoding)
-            pix = (data.width/2, data.height/2)
-            print('%s: Depth at center(%d, %d): %f(mm)\r' % (self.topic, pix[0], pix[1], cv_image[pix[1], pix[0]]))
-            sys.stdout.flush()
+            image = self.bridge.imgmsg_to_cv2(color_msg, desired_encoding='bgr8')
+            depth = self.bridge.imgmsg_to_cv2(depth_msg, depth_msg.encoding)
         except CvBridgeError as e:
             print(e)
-            return
-
-    def image_callback(self, msg):
-        # cv2.namedWindow("Trackbars")
-
-        # cv2.createTrackbar("L - H", "Trackbars", 0, 179, nothing)
-        # cv2.createTrackbar("L - S", "Trackbars", 0, 255, nothing)
-        # cv2.createTrackbar("L - V", "Trackbars", 0, 255, nothing)
-        # cv2.createTrackbar("U - H", "Trackbars", 255, 255, nothing)
-        # cv2.createTrackbar("U - S", "Trackbars", 255, 255, nothing)
-        # cv2.createTrackbar("U - V", "Trackbars", 255, 255, nothing)
-
-        # l_h = cv2.getTrackbarPos("L - H", "Trackbars")
-        # l_s = cv2.getTrackbarPos("L - S", "Trackbars")
-        # l_v = cv2.getTrackbarPos("L - V", "Trackbars")
-        # u_h = cv2.getTrackbarPos("U - H", "Trackbars")
-        # u_s = cv2.getTrackbarPos("U - S", "Trackbars")
-        # u_v = cv2.getTrackbarPos("U - V", "Trackbars")
-
-        # BEGIN BRIDGE
-        image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='bgr8')
+            return 
         
         # END BRIDGE
         h, w, d = image.shape
         # img_center_x = w/2
         # img_center_y = h/2
-        img_center_x = 314.05
-        img_center_y = 248.70
+        # img_center_x = 314.05
+        # img_center_y = 248.70
+        img_center_x = cam.cx # cx
+        img_center_y = cam.cy # cy
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         # yellow color
@@ -109,24 +102,37 @@ class ur5_vision:
             cv2.circle(image, (cX, cY), 3, (0,0,255), -1)
             cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-        # using fixed pixel_x pixel_y 
-        pixels_permm_x = 1.3275
-        pixels_permm_y = 1.3415
+        # get the depth
+        pix = (cX, cY)
+        print('%s: Depth at center(%d, %d): %f(mm)\r' % (self.depth_topic, pix[0], pix[1], depth[pix[1], pix[0]]))
+        depth = depth[pix[1], pix[0]]
 
-        # pipe = initialize_camera()
-        # dpt_frame = pipe.wait_for_frames().get_depth_frame().as_depth_frame()
+        '''
+        calculate the x,y in mm 
+        (should be deprojection here)
+        '''
+        xyz = cam.projectPixelTo3dRay((cX,cY))
+        
+        # # using fixed pixel_x pixel_y 
+        # pixels_permm_x = 1.3275
+        # pixels_permm_y = 1.3415
+
+
+        # # pipe = initialize_camera()
+        # # dpt_frame = pipe.wait_for_frames().get_depth_frame().as_depth_frame()
         
         
-        if cX != 0 and cY != 0:
-            pixel_x_in_meter =  (cX - img_center_x) / pixels_permm_x
-            pixel_y_in_meter = (cY - img_center_y) / pixels_permm_y
+        # if cX != 0 and cY != 0:
+        #     pixel_x_in_meter =  (cX - img_center_x) / pixels_permm_x
+        #     pixel_y_in_meter = (cY - img_center_y) / pixels_permm_y
 
-        tracker.x = pixel_x_in_meter
-        tracker.y = pixel_y_in_meter
-        # tracker.z = pixel_z_in_meter
+        tracker.x = xyz[0]*depth
+        tracker.y = zyz[1]*depth
+        tracker.z = xyz[2]*depth
 
-        print("world co-ordinates in the camera frame x, y z mm: (%s,%s)" %(tracker.x, tracker.y))
-        self.cxy_pub.publish(tracker)
+        print("world co-ordinates in the camera frame x, y z mm: (%s,%s,%s)" %(tracker.x, tracker.y, tracker.z))
+        self.cxyz_pub.publish(tracker)
+        
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image)
         cv2.imshow("wooden mask", wooden_block)
@@ -134,6 +140,8 @@ class ur5_vision:
         cv2.waitKey(1)
 
 if __name__ == "__main__":
-    topic = '/camera/depth/image_rect_raw'
-    listener = ur5_vision(topic)
+    depth_topic = '/camera/depth/image_rect_raw'
+    color_topic = '/camera/color/image_raw'
+    info_topic = '/camera/.../camera_info'
+    listener = ur5_vision(depth_topic, color_topic)
     rospy.spin()
