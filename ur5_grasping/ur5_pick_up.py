@@ -92,7 +92,7 @@ class UR5_Pick_Up(object):
         self.target_point = PointStamped()
         # self.bridge=cv_bridge.CvBridge()
         # self.image_sub=rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
-        self.cxy_sub = rospy.Subscriber('camera_xy', Tracker, self.tracking_callback, queue_size=1)
+        self.cxy_sub = rospy.Subscriber('camera_xyz', Tracker, self.tracking_callback, queue_size=1)
         self.state_change_time = rospy.Time.now()
 
         self.tf_listener_ = tf.TransformListener()
@@ -136,6 +136,7 @@ class UR5_Pick_Up(object):
         track_flag = msg.flag1
         self.cx = msg.x
         self.cy = msg.y
+        self.cz = msg.z
         # print ("receive coordinates in the camera frame x, y: (%s,%s)" %(self.cx, self.cy))
     
     def coordinate_convert(self):
@@ -215,11 +216,12 @@ class UR5_Pick_Up(object):
             print("target point: " ,self.target_point)
             pose_goal.position.x =  self.target_point.point.x #0
             pose_goal.position.y =  self.target_point.point.y  #-0.5
+            pose_goal.position.z =  self.target_point.point.z
             ##compensate accuracy
             pose_goal.position.x = pose_goal.position.x + 0.0369
             pose_goal.position.y = pose_goal.position.y + 0.0122
-            # pose_goal.position.z =  self.target_point.point.z
-            pose_goal.position.z =  0.058
+            
+            # pose_goal.position.z =  0.058
 
             # pose_goal.position.x = 0.0 #0
             # pose_goal.position.y = -0.5 #-0.5
