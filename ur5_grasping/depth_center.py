@@ -14,8 +14,6 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Header
 from trajectory_msgs.msg import JointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
-# tracker = Tracker()
-
 
 class Listener:
     def __init__(self, topic):
@@ -38,7 +36,6 @@ class Listener:
             print(type(depth_img[pix[1], pix[0]]))
             cv2.namedWindow("depth_map", 3)
             cv2.imshow("depth_map", depth_img)
-            
             # show color
             cv2.waitKey(1)
         except CvBridgeError as e:

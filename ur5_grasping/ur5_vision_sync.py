@@ -127,7 +127,7 @@ class ur5_vision:
             cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
             # get the depth
-            pix = (self.cX, self.cY)
+            pix = (cX, cY)
             print('%s: Depth at center(%d, %d): %f(mm)\r' % (self.depth_topic, pix[0], pix[1], depth[pix[1], pix[0]]))
 
         '''
