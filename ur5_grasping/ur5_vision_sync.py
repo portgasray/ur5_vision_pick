@@ -135,24 +135,20 @@ class ur5_vision:
         (should be deprojection here)
         '''
         
-        # # using fixed pixel_x pixel_y 
-        # pixels_permm_x = 1.3275
-        # pixels_permm_y = 1.3415
-
-        # # pipe = initialize_camera()
-        # # dpt_frame = pipe.wait_for_frames().get_depth_frame().as_depth_frame()
+        # using fixed pixel_x pixel_y 
+        pixels_permm_x = 1.3275
+        pixels_permm_y = 1.3415
         
-        
-        # if cX != 0 and cY != 0:
-        #     pixel_x_in_meter =  (cX - img_center_x) / pixels_permm_x
-        #     pixel_y_in_meter = (cY - img_center_y) / pixels_permm_y
+        if cX != 0 and cY != 0:
+            pixel_x_in_meter =  (cX - img_center_x) / pixels_permm_x
+            pixel_y_in_meter = (cY - img_center_y) / pixels_permm_y
 
-        # tracker.x = pixel_x_in_meter
-        # tracker.y = pixel_y_in_meter
-        # # tracker.z = pixel_z_in_meter
+        tracker.x = pixel_x_in_meter
+        tracker.y = pixel_y_in_meter
+        # tracker.z = pixel_z_in_meter
 
-        # print("world co-ordinates in the camera frame x, y z mm: (%s,%s)" %(tracker.x, tracker.y))
-        # self.cxy_pub.publish(tracker)
+        print("world co-ordinates in the camera frame x, y z mm: (%s,%s)" %(tracker.x, tracker.y))
+        self.cxy_pub.publish(tracker)
         
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image)

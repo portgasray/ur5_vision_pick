@@ -35,10 +35,10 @@ class ur5_vision:
         self.depth_sub = message_filters.Subscriber(self.depth_topic, Image)
         self.color_sub = message_filters.Subscriber(self.color_topic, Image) 
         self.info_sub = message_filters.Subscriber(self.info_topic, CameraInfo)
-        self.sync = message_filters.ApproximateTimeSynchronizer([self.depth_sub, self.color_sub, self.info_sub], queue_size = 5, slop = 0.1)
+        self.sync = message_filters.ApproximateTimeSynchronizer([self.depth_sub, self.color_sub, self.info_sub], queue_size = 1, slop = 0.2)
         self.sync.registerCallback(self.image_callback)
 
-        self.cxyz_pub = rospy.Publisher('camera_xyz', Tracker, queue_size=1)
+        # self.cxyz_pub = rospy.Publisher('camera_xyz', Tracker, queue_size=1)
         # self.topic = topic
         # self.bridge = CvBridge()
     
@@ -47,6 +47,7 @@ class ur5_vision:
         # UNPACK THE CAMEARA INFO
         cam = image_geometry.PinholeCameraModel()
         cam.fromCameraInfo(info_msg)
+        # self.info_sub.unsubscribe()
         # distort = info_msg.distortion_model
         
         # BEGIN BRIDGE
@@ -112,6 +113,7 @@ class ur5_vision:
         (should be deprojection here)
         '''
         xyz = cam.projectPixelTo3dRay((cX,cY))
+        print(type(xyz))
         
         # # using fixed pixel_x pixel_y 
         # pixels_permm_x = 1.3275
@@ -126,12 +128,13 @@ class ur5_vision:
         #     pixel_x_in_meter =  (cX - img_center_x) / pixels_permm_x
         #     pixel_y_in_meter = (cY - img_center_y) / pixels_permm_y
 
+        print("Original z: %f" % (xyz[2]))
         tracker.x = xyz[0]*depth
-        tracker.y = zyz[1]*depth
+        tracker.y = xyz[1]*depth
         tracker.z = xyz[2]*depth
 
         print("world co-ordinates in the camera frame x, y z mm: (%s,%s,%s)" %(tracker.x, tracker.y, tracker.z))
-        self.cxyz_pub.publish(tracker)
+        # self.cxyz_pub.publish(tracker)
         
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image)
@@ -142,6 +145,6 @@ class ur5_vision:
 if __name__ == "__main__":
     depth_topic = '/camera/depth/image_rect_raw'
     color_topic = '/camera/color/image_raw'
-    info_topic = '/camera/.../camera_info'
-    listener = ur5_vision(depth_topic, color_topic)
+    info_topic = '/camera/color/camera_info'
+    listener = ur5_vision(depth_topic, color_topic, info_topic)
     rospy.spin()
