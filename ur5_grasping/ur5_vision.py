@@ -33,21 +33,37 @@ class ur5_vision:
         self.color_topic = color_topic
         self.info_topic = info_topic
         self.depth_sub = message_filters.Subscriber(self.depth_topic, Image)
+<<<<<<< HEAD
         self.color_sub = message_filters.Subscriber(self.color_topic, Image) 
         self.info_sub = message_filters.Subscriber(self.info_topic, CameraInfo)
         self.sync = message_filters.ApproximateTimeSynchronizer([self.depth_sub, self.color_sub, self.info_sub], queue_size = 1, slop = 0.2)
+=======
+        self.color_sub = message_filters.Subscriber(self.color_topic, Image)
+        # self.info_sub = message_filters.Subscriber(self.info_topic, CameraInfo)
+        self.info_sub = rospy.Subscriber(self.info_topic, CamraInfo, camera_info_callback)
+        self.cam = image_geometry.PinholeCameraModel()
+        # self.sync = message_filters.ApproximateTimeSynchronizer([self.depth_sub, self.color_sub, self.info_sub], queue_size = 5, slop = 0.1)
+        self.sync = message_filters.ApproximateTimeSynchronizer([self.depth_sub, self.color_sub], queue_size = 5, slop = 0.1)
+>>>>>>> a7036df8ce69e89a4fe1eea9ea01fecf3831e7c0
         self.sync.registerCallback(self.image_callback)
 
         # self.cxyz_pub = rospy.Publisher('camera_xyz', Tracker, queue_size=1)
         # self.topic = topic
         # self.bridge = CvBridge()
     
-    def image_callback(self, depth_msg, color_msg, info_msg):
+    def camera_info_callback(self, info_msg):
+        self.cam.fromCameraInfo(info_msg)
+        self.info_sub.unregister()
+
+    def image_callback(self, depth_msg, color_msg):
 
         # UNPACK THE CAMEARA INFO
+<<<<<<< HEAD
         cam = image_geometry.PinholeCameraModel()
         cam.fromCameraInfo(info_msg)
         # self.info_sub.unsubscribe()
+=======
+>>>>>>> a7036df8ce69e89a4fe1eea9ea01fecf3831e7c0
         # distort = info_msg.distortion_model
         
         # BEGIN BRIDGE
@@ -64,8 +80,8 @@ class ur5_vision:
         # img_center_y = h/2
         # img_center_x = 314.05
         # img_center_y = 248.70
-        img_center_x = cam.cx # cx
-        img_center_y = cam.cy # cy
+        img_center_x = self.cam.cx # cx
+        img_center_y = self.cam.cy # cy
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         # yellow color
@@ -112,8 +128,12 @@ class ur5_vision:
         calculate the x,y in mm 
         (should be deprojection here)
         '''
+<<<<<<< HEAD
         xyz = cam.projectPixelTo3dRay((cX,cY))
         print(type(xyz))
+=======
+        xyz = self.cam.projectPixelTo3dRay((cX,cY))
+>>>>>>> a7036df8ce69e89a4fe1eea9ea01fecf3831e7c0
         
         # # using fixed pixel_x pixel_y 
         # pixels_permm_x = 1.3275
@@ -146,5 +166,9 @@ if __name__ == "__main__":
     depth_topic = '/camera/depth/image_rect_raw'
     color_topic = '/camera/color/image_raw'
     info_topic = '/camera/color/camera_info'
+<<<<<<< HEAD
     listener = ur5_vision(depth_topic, color_topic, info_topic)
+=======
+    listener = ur5_vision(depth_topic, color_topic)
+>>>>>>> a7036df8ce69e89a4fe1eea9ea01fecf3831e7c0
     rospy.spin()
