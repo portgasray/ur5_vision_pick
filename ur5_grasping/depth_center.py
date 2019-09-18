@@ -28,16 +28,20 @@ class Listener:
     def depth_callback(self, depth_msg):
         try:       
             depth_img = self.bridge.imgmsg_to_cv2(depth_msg, depth_msg.encoding)
-            # depth_img = self.bridge.imgmsg_to_cv2(depth_msg, '32FC1')
+            # depth_img = self.bridge.imgmsg_to_cv2(depth_msg, depth_msg.encoding)
             print("depth_msg.encoding: %s" % (depth_msg.encoding))
             # pix = (320, 240)
-            pix = (407, 236)
+            # pix = (345, 179)
+            pix = (356, 249)
             print('%s: Depth at center(%d, %d): %f(mm)\r' % ('/camera/depth/image_rect_raw/', pix[0], pix[1], depth_img[pix[1], pix[0]]))
             print(type(depth_img[pix[1], pix[0]]))
             cv2.namedWindow("depth_map", 3)
             cv2.imshow("depth_map", depth_img)
             # show color
             cv2.waitKey(1)
+
+            # find the position:
+
         except CvBridgeError as e:
             print(e)
             return

@@ -125,7 +125,7 @@ class ur5_vision:
         tracker.y = pixel_y_in_meter
         # tracker.z = pixel_z_in_meter
 
-        print("world co-ordinates in the camera frame x, y z mm: (%s,%s)" %(tracker.x, tracker.y))
+        # print("world co-ordinates in the camera frame x, y z mm: (%s,%s)" %(tracker.x, tracker.y))
         self.cxy_pub.publish(tracker)
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image)

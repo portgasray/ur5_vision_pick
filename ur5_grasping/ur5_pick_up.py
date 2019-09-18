@@ -220,7 +220,8 @@ class UR5_Pick_Up(object):
             ##compensate accuracy
             pose_goal.position.x = pose_goal.position.x + 0.0369
             pose_goal.position.y = pose_goal.position.y + 0.0122
-            pose_goal.position.z = pose_goal.position.z + 0.01
+            print("received z: %f" % (pose_goal.position.z))
+            pose_goal.position.z = pose_goal.position.z + 0.12
             
             # pose_goal.position.z =  0.058
 
@@ -263,25 +264,25 @@ if __name__ == "__main__":
     # image_sub = rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
     # try:
     print "============ Press `Enter` to go to ready pose"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     
     ur5_pick_up.coordinate_convert()
     print "============ Press `Enter` to go to pose goal and get the block"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_pose_goal()
     ##pick up
     # gripper.open()
 
     print "============ Press `Enter` to place the block"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     #place
     ur5_pick_up.place_block()
     # gripper.close()
 
     print "============ Press `Enter` to go ready pose"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     
     print "============ Finished"
