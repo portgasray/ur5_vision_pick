@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<!--
+Copyright (c) 2018 Intel Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="ur5_hitbot_with_ilc_platform" >
+  
+  <!-- common stuff -->
+  <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro" />
+
+  <!-- ur5 -->
+  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
+
+  <!-- ILC platform -->
+  <xacro:include filename="$(find handson_description)/urdf/ilc_platform.urdf.xacro" />
+
+  <!-- arm -->
+  <!-- <xacro:ur5_robot prefix="" joint_limited="false"/> -->
+
+  <!-- hand -->
+  <xacro:include filename="$(find handson_description)/urdf/hitbot/hitbot.urdf.xacro" />
+
+  <!-- world link -->
+  <link name="world" />
+  <joint name="world_platform_joint" type="fixed">
+    <parent link="world" />
+    <child link = "platform_base" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </joint>
+
+  <joint name="platform_base_link_joint" type="fixed">
+    <parent link="robot_install_plate" />
+    <child link = "base_link" />
+    <origin xyz="0.0 0.0 ${0.015 / 2}" rpy="0.0 0.0 ${pi}" />
+  </joint>
+
+  <joint name="tool0_hitbot_joint" type="fixed">
+    <parent link="tool0" />
+    <child link = "hitbot_base" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${pi/4}" />
+  </joint>
+
+</robot>

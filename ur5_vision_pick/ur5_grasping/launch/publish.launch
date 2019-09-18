@@ -1,0 +1,27 @@
+<launch>
+	
+		<!-- start the robot -->
+  <include file="$(find ur_modern_driver)/launch/ur5_bringup.launch">
+      <arg name="limited" value="true" />
+      <arg name="robot_ip" value="169.254.6.80" />
+  </include>
+  <include file="$(find ur5_moveit_config)/launch/ur5_moveit_planning_execution.launch">
+      <arg name="limited" value="true" />
+  </include>
+ 
+  <include file="$(find ur5_moveit_config)/launch/moveit_rviz.launch">
+      <arg name="config" value="true" />
+  </include>
+ 
+	<!--<include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch" />-->
+ 
+	<!--<include file="$(find easy_handeye)/launch/publish.launch" />-->
+ 
+    <!-- on base -->
+	<!-- <node pkg="tf" type="static_transform_publisher" name="ur5_broadcaster" args=" -0.07427868848074914 -0.5151402712869437 0.5263202824952005 -0.3811774134284603 -0.7688461277047242 0.32927060898269445  0.39390389369185613 base_link camera_link 100" /> -->
+
+    <!-- on hand -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot"  args="0.004364725185050459 0.060488060904764634 0.05631175618646857 -0.3596491451417878 -0.004127015261514647 -0.002162250565121524 0.9330759801947032 ee_link camera_link 100"/> -->
+
+    <node pkg="tf" type="static_transform_publisher" name="ur5_camera_to_robot"  args="0.004364725185050459 0.060488060904764634 0.05631175618646857 -0.643217929754927 0.285731035178261 -0.649507195581564 0.287695799874654 ee_link camera_link 100"/>
+</launch>

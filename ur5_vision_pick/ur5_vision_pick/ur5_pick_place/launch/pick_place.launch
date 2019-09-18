@@ -1,0 +1,3 @@
+<launch>
+  <node name="pick_place" pkg="ur5_pick_place" type="ur5_pick_place" required="true"/>
+</launch>
