@@ -32,7 +32,6 @@ void VisionManager::get2DLocation(cv::Mat img, float &x, float &y)
 
 	// detectTable(tablePos);
 
-	detect2DObject(x, y, tablePos);
 	convertToMM(x, y);
 }
 
@@ -118,7 +117,7 @@ void VisionManager::detect2DObject(float &pixel_x, float &pixel_y)
 		for (i = 0; i < height; i++)
 	  	for (j = 0; j < width; j++)
 	        {
-	            CvScalar s_hsv = cvGet2D(hsv, i, j);//获取像素点为（j, i）点的HSV的值
+	            CvScalar s_hsv_image = cvGet2D(hsv_image, i, j);//获取像素点为（j, i）点的HSV的值
 	            /*
 	                opencv 的H范围是0~180，红色的H范围大概是(0~8)∪(160,180)
 	                S是饱和度，一般是大于一个值,S过低就是灰色（参考值S>80)，
@@ -134,15 +133,17 @@ void VisionManager::detect2DObject(float &pixel_x, float &pixel_y)
 	            }
 	        }
 
-	vector<vector<Point> > contours;
-	vector<Vec4i>hierarchy;
-	vector<Moments> mu(contours.size() );
+	std::vector<vector<Point>>contours;
+	std::vector<Vec4i>hierarchy;
+	
 	cv::findContours(hsv_image, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+	std::vector<Moments> mu(contours.size() );
 	for (int i = 0; i < contours.size(); i++)
 	{
-		mu[k] = moments( contours[k], false );
-		if (mu[k].m00>1000)
-		drawContours(SrcImage, contours,k,Scalar(255,0,0), CV_FILLED);
+		mu[i] = moments( contours[i], false );
+		if (mu[i].m00>1000)
+		cv::drawContours(SrcImage, contours,i,Scalar(255,0,0), CV_FILLED);
+		cv::Scalar color = cv::Scalar(255, 0, 0);
 		cv::drawContours(image, contours, i, color, 1, 8, hierarchy, 0, cv::Point());
 	}
 }
