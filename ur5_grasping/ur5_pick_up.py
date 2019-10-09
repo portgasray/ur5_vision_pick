@@ -17,6 +17,10 @@ from time import sleep
 
 from gripper import GripperClient
 
+### for Object Recognition Kitchen
+from object_recognition_msgs.msg import RecognizedObject
+from object_recognition_msgs.msg import RecognizedObjectArray
+
 
 def all_close(goal, actual, tolerance):
     """
@@ -93,11 +97,23 @@ class UR5_Pick_Up(object):
         # self.bridge=cv_bridge.CvBridge()
         # self.image_sub=rospy.Subscriber('/camera/color/image_raw', Image, self.image_callback)
         self.cxy_sub = rospy.Subscriber('camera_xyz', Tracker, self.tracking_callback, queue_size=1)
+        self.ork_sub = rospy.Subscriber('recongnized_object_array', RecognizedObjectArray, self.ork_recognized_callback, queue_size = 1)
         self.state_change_time = rospy.Time.now()
 
         self.tf_listener_ = tf.TransformListener()
         rate = rospy.Rate(10)
 
+    def ork_recognized_callback(self, msgs):
+        ## now for Single-object Recognition
+
+        object = msgs.objects[0]
+        confidence = object.confidence
+        pose = object.pose.pose.pose.position
+        orient = object.pose.pose.pose.orientation
+
+        self.ork_x = pose.x
+        self.ork_y = pose.y
+        self.ork_z = pose.z
 
     def go_to_ready_pose(self):
         # Set arm back to home pose
@@ -121,6 +137,10 @@ class UR5_Pick_Up(object):
         default_joint_states[3] = -1.7472
         default_joint_states[4] = 1.6474
         default_joint_states[5] = 0.7089
+
+        ### redefine the ready pose for ORK
+
+
 
         # Set the internal state to the current state
         group.go(default_joint_states, wait=True)
@@ -158,13 +178,13 @@ class UR5_Pick_Up(object):
             camera_point.header.stamp = rospy.Time(0)
 
             camera_point.point.x = self.cx / 1000 
-            camera_point.point.y = self.cy / 1000
-            
-            ## camera original point
-            # camera_point.point.x = 0
-            # camera_point.point.y = 0
-            
+            camera_point.point.y = self.cy / 1000          
             camera_point.point.z = self.cz / 1000
+
+            ## transition for ORK Recognition
+            camera_point.point.x = self.ork_x / 1000
+            camera_point.point.y = self.ork_y / 1000
+            camera_point.point.z = self.ork_z / 1000
 
             print "coordinate in camera frame (%s, %s, %s)" %(camera_point.point.x, camera_point.point.y, camera_point.point.z)
 
@@ -227,6 +247,11 @@ class UR5_Pick_Up(object):
             # pose_goal.position.y = -0.5 #-0.5
             # pose_goal.position.z = 0.062 #0.44
 
+            ## pose_goal of ORK recognition
+            pose_goal.position.x = self.target_point.point.x
+            pose_goal.position.y = self.target_point.point.y
+            pose_goal.position.z = self.target_point.point.z
+
             group.set_pose_target(pose_goal)
             plan = group.go(wait=True)
             group.stop()
@@ -262,25 +287,28 @@ if __name__ == "__main__":
     # image_sub = rospy.Subscriber('/camera/color/image_raw', Image, image_callback)
     # try:
     print "============ Press `Enter` to go to ready pose"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     
+    print "============ Press 'Enter' to convert the coordinates "
+    raw_input()
     ur5_pick_up.coordinate_convert()
+    
     print "============ Press `Enter` to go to pose goal and get the block"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_pose_goal()
     ##pick up
     # gripper.open()
 
     print "============ Press `Enter` to place the block"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     #place
     ur5_pick_up.place_block()
     # gripper.close()
 
     print "============ Press `Enter` to go ready pose"
-    # raw_input()
+    raw_input()
     ur5_pick_up.go_to_ready_pose()
     
     print "============ Finished"
