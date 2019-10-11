@@ -27,6 +27,7 @@
   <!-- start realsense camera -->
   <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
     <arg name="align_depth" value="true" />
+    <arg name="filters" value="pointcloud" />
   </include>
 
   <!-- eye on base -->
