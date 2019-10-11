@@ -218,10 +218,11 @@ class UR5_Pick_Up(object):
             pose_goal.position.y =  self.target_point.point.y  #-0.5
             pose_goal.position.z =  self.target_point.point.z
             ##compensate accuracy
-            pose_goal.position.x = pose_goal.position.x + 0.0369
-            pose_goal.position.y = pose_goal.position.y + 0.0122
+            # pose_goal.position.x = pose_goal.position.x + 0.0369
+            # pose_goal.position.y = pose_goal.position.y + 0.0122
             print("received z: %f" % (pose_goal.position.z))
-            pose_goal.position.z = pose_goal.position.z + 0.12
+            pose_goal.position.z = pose_goal.position.z + 0.031 + 0.037
+
             
             # pose_goal.position.z =  0.058
 

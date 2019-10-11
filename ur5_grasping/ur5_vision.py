@@ -41,7 +41,7 @@ class ur5_vision:
         self.sync = message_filters.ApproximateTimeSynchronizer([self.depth_sub, self.color_sub], queue_size = 5, slop = 0.1)
         self.sync.registerCallback(self.image_callback)
 
-        # self.cxyz_pub = rospy.Publisher('camera_xyz', Tracker, queue_size=1)
+        self.cxyz_pub = rospy.Publisher('camera_xyz', Tracker, queue_size=1)
         # self.topic = topic
         # self.bridge = CvBridge()
     
@@ -108,8 +108,8 @@ class ur5_vision:
             cv2.putText(image, "({}, {})".format(int(cX), int(cY)), (int(cX-5), int(cY+15)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
         # get the depth
-        depth_x = cX - 50
-        depth_y = cY - 60
+        depth_x = cX
+        depth_y = cY
 
         pix = (depth_x, depth_y)
         print('%s: Depth at center(%d, %d): %f(mm)\r' % (self.depth_topic, pix[0], pix[1], depth[pix[1], pix[0]]))
@@ -125,7 +125,7 @@ class ur5_vision:
         # pixels_permm_x = 1.3275
         # pixels_permm_y = 1.3415
 
-
+ 
         # # pipe = initialize_camera()
         # # dpt_frame = pipe.wait_for_frames().get_depth_frame().as_depth_frame()
         
@@ -140,7 +140,7 @@ class ur5_vision:
         tracker.z = xyz[2]*depth
 
         print("world co-ordinates in the camera frame x, y z mm: (%s,%s,%s)" %(tracker.x, tracker.y, tracker.z))
-        # self.cxyz_pub.publish(tracker)
+        self.cxyz_pub.publish(tracker)
         
         cv2.namedWindow("window", 1)
         cv2.imshow("window", image)
@@ -149,7 +149,8 @@ class ur5_vision:
         cv2.waitKey(1)
 
 if __name__ == "__main__":
-    depth_topic = '/camera/depth/image_rect_raw'
+    # depth_topic = '/camera/depth/image_rect_raw'
+    depth_topic = '/camera/aligned_depth_to_color/image_raw'
     color_topic = '/camera/color/image_raw'
     info_topic = '/camera/color/camera_info'
     listener = ur5_vision(depth_topic, color_topic, info_topic)

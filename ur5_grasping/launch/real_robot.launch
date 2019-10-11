@@ -25,7 +25,9 @@
   </include>
 
   <!-- start realsense camera -->
-  <include file="$(find realsense2_camera)/launch/rs_camera.launch" />
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch" >
+    <arg name="align_depth" value="true" />
+  </include>
 
   <!-- eye on base -->
   <!-- x, y, z, qx, qy, qz, qw -->
